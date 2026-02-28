@@ -4,9 +4,9 @@ import OpenAI from 'openai'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export const MODELS = {
-  'groq-llama-70b':  { provider: 'groq',      id: 'llama-3.1-70b-versatile',   name: 'Llama 3.1 70B',      badge: '⚡ Fast',    free: true  },
+  'groq-llama-70b':  { provider: 'groq',      id: 'llama-3.3-70b-versatile',   name: 'Llama 3.1 70B',      badge: '⚡ Fast',    free: true  },
   'groq-llama-8b':   { provider: 'groq',      id: 'llama-3.1-8b-instant',      name: 'Llama 3.1 8B',       badge: '⚡ Fastest', free: true  },
-  'groq-mixtral':    { provider: 'groq',      id: 'mixtral-8x7b-32768',        name: 'Mixtral 8x7B',       badge: '⚡ Groq',    free: true  },
+  'groq-mixtral':    { provider: 'groq',      id: 'llama3-groq-70b-8192-tool-use-preview',        name: 'Llama3 Groq 70B',       badge: '⚡ Groq',    free: true  },
   'groq-gemma2':     { provider: 'groq',      id: 'gemma2-9b-it',              name: 'Gemma 2 9B',         badge: '⚡ Google',  free: true  },
   'claude-sonnet':   { provider: 'anthropic', id: 'claude-3-5-sonnet-20241022',name: 'Claude 3.5 Sonnet',  badge: '🔶 Smart',   free: false },
   'claude-haiku':    { provider: 'anthropic', id: 'claude-3-haiku-20240307',   name: 'Claude 3 Haiku',     badge: '🔶 Fast',    free: false },
