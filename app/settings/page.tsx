@@ -46,7 +46,7 @@ export default function SettingsPage() {
     if (!key) return
     setLoading(p=>({...p,[provider]:true}))
     const r = await apiFetch('/api/keys', { method:'POST', body: JSON.stringify({ provider, key }) })
-    if (r.ok) { setConfigured(p=>[...new Set([...p,provider])]); setInputs(p=>({...p,[provider]:''})); toast.success(`${provider} key saved!`) }
+    if (r.ok) { setConfigured(p=>Array.from(new Set([...p,provider]))); setInputs(p=>({...p,[provider]:''})); toast.success(`${provider} key saved!`) }
     else { const e = await r.json(); toast.error(e.error) }
     setLoading(p=>({...p,[provider]:false}))
   }
