@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 const PROVIDERS = [
+  { id:'openrouter', name:'OpenRouter',    badge:'🆓', color:'#43e97b', desc:'FREE: Llama, DeepSeek, Gemma & more. Works in India!', url:'https://openrouter.ai/keys', prefix:'sk-or-' },
   { id:'groq',      name:'Groq',           badge:'⚡', color:'#f97316', desc:'Ultra-fast. Free tier generous.',     url:'https://console.groq.com',        prefix:'gsk_'    },
   { id:'anthropic', name:'Claude',          badge:'🔶', color:'#ff7849', desc:'Claude 3.5 Sonnet & Haiku.',          url:'https://console.anthropic.com',    prefix:'sk-ant-' },
   { id:'openai',    name:'OpenAI',          badge:'🔷', color:'#4d9fff', desc:'GPT-4o and GPT-4o Mini.',             url:'https://platform.openai.com',      prefix:'sk-'     },
