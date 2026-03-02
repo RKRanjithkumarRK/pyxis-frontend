@@ -12,8 +12,8 @@ export const MODELS = {
   'claude-haiku':    { provider: 'anthropic', id: 'claude-3-haiku-20240307',       name: 'Claude 3 Haiku',    badge: '🔶 Fast',    free: false },
   'gpt-4o':          { provider: 'openai',    id: 'gpt-4o',                        name: 'GPT-4o',            badge: '🔷 OpenAI',  free: false },
   'gpt-4o-mini':     { provider: 'openai',    id: 'gpt-4o-mini',                   name: 'GPT-4o Mini',       badge: '🔷 Fast',    free: false },
-  'gemini-pro':      { provider: 'gemini',    id: 'gemini-1.5-pro-001',            name: 'Gemini 1.5 Pro',    badge: '🔮 Google',  free: false },
-  'gemini-flash':    { provider: 'gemini',    id: 'gemini-1.5-flash-001',          name: 'Gemini 1.5 Flash',  badge: '🔮 Fast',    free: false },
+  'gemini-pro':      { provider: 'gemini',    id: 'gemini-pro',                    name: 'Gemini Pro',        badge: '🔮 Google',  free: false },
+  'gemini-flash':    { provider: 'gemini',    id: 'gemini-pro',                    name: 'Gemini Flash',      badge: '🔮 Fast',    free: false },
 } as const
 
 export type ModelKey = keyof typeof MODELS
@@ -94,14 +94,10 @@ export async function streamChat(
   if (m.provider === 'gemini') {
     const genAI = new GoogleGenerativeAI(key)
     const gm = genAI.getGenerativeModel({ model: m.id })
-    const history = [
-      { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] },
-      ...userMsgs.slice(0, -1).map(x => ({
-        role: x.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: x.content }]
-      }))
-    ]
+    const history = userMsgs.slice(0, -1).map(x => ({
+      role: x.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: x.content }]
+    }))
     const chat = gm.startChat({ history })
     const result = await chat.sendMessageStream(userMsgs.at(-1)?.content || '')
     return new ReadableStream({ async start(ctrl) {
