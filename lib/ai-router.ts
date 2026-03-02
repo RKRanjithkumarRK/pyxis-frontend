@@ -5,15 +5,15 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export const MODELS = {
   'groq-llama-70b':  { provider: 'groq',      id: 'llama-3.3-70b-versatile',       name: 'Llama 3.3 70B',     badge: '⚡ Fast',    free: true  },
-'groq-llama-8b':   { provider: 'groq',      id: 'llama-3.1-8b-instant',          name: 'Llama 3.1 8B',      badge: '⚡ Fastest', free: true  },
-'groq-gemma2':     { provider: 'groq',      id: 'gemma2-9b-it',                  name: 'Gemma 2 9B',        badge: '⚡ Groq',    free: true  },
-'groq-deepseek':   { provider: 'groq',      id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 70B',   badge: '⚡ Groq',    free: true  },
-'claude-sonnet':   { provider: 'anthropic', id: 'claude-3-5-sonnet-20241022',    name: 'Claude 3.5 Sonnet', badge: '🔶 Smart',   free: false },
-'claude-haiku':    { provider: 'anthropic', id: 'claude-3-haiku-20240307',       name: 'Claude 3 Haiku',    badge: '🔶 Fast',    free: false },
-'gpt-4o':          { provider: 'openai',    id: 'gpt-4o',                        name: 'GPT-4o',            badge: '🔷 OpenAI',  free: false },
-'gpt-4o-mini':     { provider: 'openai',    id: 'gpt-4o-mini',                   name: 'GPT-4o Mini',       badge: '🔷 Fast',    free: false },
-'gemini-pro':      { provider: 'gemini',    id: 'gemini-1.5-pro',                name: 'Gemini 1.5 Pro',    badge: '🔮 Google',  free: false },
-'gemini-flash':    { provider: 'gemini',    id: 'gemini-1.5-flash',              name: 'Gemini 1.5 Flash',  badge: '🔮 Fast',    free: false },
+  'groq-llama-8b':   { provider: 'groq',      id: 'llama-3.1-8b-instant',          name: 'Llama 3.1 8B',      badge: '⚡ Fastest', free: true  },
+  'groq-gemma2':     { provider: 'groq',      id: 'gemma2-9b-it',                  name: 'Gemma 2 9B',        badge: '⚡ Groq',    free: true  },
+  'groq-deepseek':   { provider: 'groq',      id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 70B',   badge: '⚡ Groq',    free: true  },
+  'claude-sonnet':   { provider: 'anthropic', id: 'claude-3-5-sonnet-20241022',    name: 'Claude 3.5 Sonnet', badge: '🔶 Smart',   free: false },
+  'claude-haiku':    { provider: 'anthropic', id: 'claude-3-haiku-20240307',       name: 'Claude 3 Haiku',    badge: '🔶 Fast',    free: false },
+  'gpt-4o':          { provider: 'openai',    id: 'gpt-4o',                        name: 'GPT-4o',            badge: '🔷 OpenAI',  free: false },
+  'gpt-4o-mini':     { provider: 'openai',    id: 'gpt-4o-mini',                   name: 'GPT-4o Mini',       badge: '🔷 Fast',    free: false },
+  'gemini-pro':      { provider: 'gemini',    id: 'gemini-1.5-pro-001',            name: 'Gemini 1.5 Pro',    badge: '🔮 Google',  free: false },
+  'gemini-flash':    { provider: 'gemini',    id: 'gemini-1.5-flash-001',          name: 'Gemini 1.5 Flash',  badge: '🔮 Fast',    free: false },
 } as const
 
 export type ModelKey = keyof typeof MODELS
@@ -31,12 +31,17 @@ function getKey(provider: string, userKeys: Record<string,string> = {}) {
   return key
 }
 
-export async function streamChat(messages: any[], model: string, systemPrompt: string, userKeys: Record<string,string> = {}): Promise<ReadableStream> {
+export async function streamChat(
+  messages: any[],
+  model: string,
+  systemPrompt: string,
+  userKeys: Record<string,string> = {}
+): Promise<ReadableStream> {
   const m = MODELS[model as ModelKey]
   if (!m) throw new Error(`Unknown model: ${model}`)
   const key = getKey(m.provider, userKeys)
   const enc = new TextEncoder()
-  const userMsgs = messages.filter(m => m.role !== 'system')
+  const userMsgs = messages.filter(msg => msg.role !== 'system')
 
   if (m.provider === 'groq') {
     const groq = new Groq({ apiKey: key })
@@ -88,11 +93,15 @@ export async function streamChat(messages: any[], model: string, systemPrompt: s
 
   if (m.provider === 'gemini') {
     const genAI = new GoogleGenerativeAI(key)
-    const gm = genAI.getGenerativeModel({ model: m.id, systemInstruction: systemPrompt })
-    const history = userMsgs.slice(0,-1).map(x => ({
-      role: x.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: x.content }]
-    }))
+    const gm = genAI.getGenerativeModel({ model: m.id })
+    const history = [
+      { role: 'user', parts: [{ text: systemPrompt }] },
+      { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] },
+      ...userMsgs.slice(0, -1).map(x => ({
+        role: x.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: x.content }]
+      }))
+    ]
     const chat = gm.startChat({ history })
     const result = await chat.sendMessageStream(userMsgs.at(-1)?.content || '')
     return new ReadableStream({ async start(ctrl) {
