@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server'
-import { streamChat } from '@/lib/ai-router'
+import { streamChat } from '@/lib/openrouter'
 import { verifyToken } from '@/lib/auth-helper'
 import { adminDb } from '@/lib/firebase-admin'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   const user = await verifyToken(req)
@@ -11,23 +12,38 @@ export async function POST(req: NextRequest) {
 
   const { messages, model } = await req.json()
 
-  // load system prompt
-  const profileDoc = await adminDb.doc(`users/${user.uid}/profile/main`).get()
-  const systemPrompt = profileDoc.exists
-    ? profileDoc.data()?.systemPrompt || 'You are a helpful AI assistant.'
-    : 'You are a helpful AI assistant.'
+  // Load user settings and API keys in parallel for speed
+  const [profileSnap, keySnap] = await Promise.all([
+    adminDb.doc(`users/${user.uid}/settings/personalization`).get(),
+    adminDb.doc(`users/${user.uid}/private/apikeys`).get(),
+  ])
 
-  // load user API keys
-  const keyDoc = await adminDb.doc(`users/${user.uid}/private/apikeys`).get()
-  const userKeys = keyDoc.exists ? keyDoc.data() || {} : {}
+  const customInstructions = profileSnap.exists ? profileSnap.data()?.customInstructions || '' : ''
+  const systemPrompt = customInstructions || 'You are a helpful AI assistant.'
 
-  const stream = await streamChat(messages, model, systemPrompt, userKeys)
+  const userKeys = keySnap.exists ? keySnap.data() || {} : {}
+  const apiKey = userKeys.openrouter || process.env.OPENROUTER_API_KEY
 
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-    },
-  })
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'No OpenRouter API key configured. Add one in Settings.' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  try {
+    const stream = await streamChat(messages, model, apiKey, systemPrompt)
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    })
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
 }

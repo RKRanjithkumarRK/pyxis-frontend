@@ -7,28 +7,48 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   const user = await verifyToken(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const convId = new URL(request.url).searchParams.get('convId')
-  if (!convId) return NextResponse.json({ error: 'Missing convId' }, { status: 400 })
+
+  const conversationId = new URL(request.url).searchParams.get('conversationId')
+  if (!conversationId) return NextResponse.json({ error: 'Missing conversationId' }, { status: 400 })
+
   const snap = await adminDb
-    .collection(`users/${user.uid}/conversations/${convId}/messages`)
-    .orderBy('createdAt', 'asc').get()
-  return NextResponse.json(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    .collection(`users/${user.uid}/conversations/${conversationId}/messages`)
+    .orderBy('createdAt', 'asc')
+    .get()
+
+  const messages = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return NextResponse.json({ messages })
 }
 
 export async function POST(request: NextRequest) {
   const user = await verifyToken(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { convId, content, role } = await request.json()
-  const ref = await adminDb
-    .collection(`users/${user.uid}/conversations/${convId}/messages`)
-    .add({ role, content, createdAt: new Date().toISOString() })
-  // Update conversation title on first user message
-  const conv = await adminDb.doc(`users/${user.uid}/conversations/${convId}`).get()
-  const data = conv.data()
-  if (data?.messageCount === 0 && role === 'user') {
-    await conv.ref.update({ title: content.slice(0, 55), messageCount: 1, updatedAt: new Date().toISOString() })
-  } else {
-    await conv.ref.update({ messageCount: (data?.messageCount || 0) + 1, updatedAt: new Date().toISOString() })
+
+  const { conversationId, role, content, imageUrl } = await request.json()
+  if (!conversationId || !role || !content) {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
+
+  const ref = await adminDb
+    .collection(`users/${user.uid}/conversations/${conversationId}/messages`)
+    .add({
+      role,
+      content,
+      ...(imageUrl ? { imageUrl } : {}),
+      createdAt: new Date().toISOString(),
+    })
+
+  // Update conversation
+  const convRef = adminDb.doc(`users/${user.uid}/conversations/${conversationId}`)
+  const conv = await convRef.get()
+  const data = conv.data()
+
+  // Auto-title from first user message
+  if (role === 'user' && data?.title === 'New Chat') {
+    await convRef.update({ title: content.slice(0, 60), updatedAt: new Date().toISOString() })
+  } else {
+    await convRef.update({ updatedAt: new Date().toISOString() })
+  }
+
   return NextResponse.json({ id: ref.id })
 }

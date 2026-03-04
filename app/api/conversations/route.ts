@@ -7,37 +7,51 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   const user = await verifyToken(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const snap = await adminDb.collection(`users/${user.uid}/conversations`)
-    .orderBy('updatedAt', 'desc').limit(50).get()
-  const convs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  return NextResponse.json(convs)
+
+  const snap = await adminDb
+    .collection(`users/${user.uid}/conversations`)
+    .orderBy('updatedAt', 'desc')
+    .limit(50)
+    .get()
+
+  const conversations = snap.docs
+    .map(d => ({ id: d.id, ...d.data() } as any))
+    .filter(c => !c.archived)
+  return NextResponse.json({ conversations })
 }
 
 export async function POST(request: NextRequest) {
   const user = await verifyToken(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { title, model } = await request.json()
+
+  const { title, model, projectId } = await request.json()
   const now = new Date().toISOString()
+
   const ref = await adminDb.collection(`users/${user.uid}/conversations`).add({
-    title: title || 'New Chat', model: model || 'groq-llama-70b',
-    createdAt: now, updatedAt: now, messageCount: 0
+    title: title || 'New Chat',
+    model: model || 'meta-llama/llama-3.3-70b-instruct',
+    createdAt: now,
+    updatedAt: now,
+    archived: false,
+    ...(projectId ? { projectId } : {}),
   })
-  // Ensure user doc exists
-  await adminDb.doc(`users/${user.uid}`).set({ uid: user.uid, email: user.email }, { merge: true })
-  return NextResponse.json({ id: ref.id, title: title || 'New Chat', model })
+
+  return NextResponse.json({ id: ref.id })
 }
 
 export async function DELETE(request: NextRequest) {
   const user = await verifyToken(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { searchParams } = new URL(request.url)
-  const id = searchParams.get('id')
+
+  const id = new URL(request.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
-  // Delete all messages in conversation
+
+  // Delete all messages
   const msgs = await adminDb.collection(`users/${user.uid}/conversations/${id}/messages`).get()
   const batch = adminDb.batch()
   msgs.docs.forEach(d => batch.delete(d.ref))
   batch.delete(adminDb.doc(`users/${user.uid}/conversations/${id}`))
   await batch.commit()
+
   return NextResponse.json({ success: true })
 }
