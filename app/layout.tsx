@@ -9,9 +9,25 @@ export const metadata: Metadata = {
   description: 'AI chat assistant powered by multiple models.',
 }
 
+const themeScript = `
+(function() {
+  try {
+    var t = localStorage.getItem('pyxis-theme') || 'system';
+    var r = t === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : t;
+    document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.classList.add(r);
+  } catch(e) {}
+})();
+`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <ThemeProvider>
           <AuthProvider>

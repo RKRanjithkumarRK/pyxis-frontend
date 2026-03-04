@@ -3,7 +3,7 @@ import { ModelDef } from '@/types'
 export const models: ModelDef[] = [
   // ── FREE TIER ── No credits needed. Uses OpenRouter free endpoints.
   // "Auto (Free)" uses OpenRouter's smart free router — picks best available model automatically
-  { id: 'openrouter/auto:free',              name: 'Auto (Free)',       provider: 'OpenRouter', description: 'Automatically picks the best available free model', free: true, maxTokens: 2048 },
+  { id: 'openrouter/free',                   name: 'Auto (Free)',       provider: 'OpenRouter', description: 'Automatically picks the best available free model', free: true, maxTokens: 2048 },
   { id: 'stepfun/step-3.5-flash:free',       name: 'Step 3.5 Flash',   provider: 'Stepfun',   description: 'Fast & capable free model',                          free: true, maxTokens: 2048 },
   { id: 'arcee-ai/trinity-large-preview:free', name: 'Trinity Large',  provider: 'Arcee AI',  description: '400B params, powerful reasoning',                    free: true, maxTokens: 2048 },
   { id: 'nvidia/nemotron-3-nano-30b-a3b:free', name: 'Nemotron 30B',  provider: 'NVIDIA',    description: 'NVIDIA open model, 30B params',                       free: true, maxTokens: 2048 },

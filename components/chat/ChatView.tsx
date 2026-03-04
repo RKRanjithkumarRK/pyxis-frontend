@@ -206,7 +206,7 @@ export default function ChatView({ conversationId }: Props) {
 
       {/* Messages or welcome */}
       {messages.length === 0 ? (
-        <WelcomeScreen />
+        <WelcomeScreen onSend={handleSend} />
       ) : (
         <MessageList />
       )}

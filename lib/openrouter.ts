@@ -35,8 +35,22 @@ export async function streamChat(
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`OpenRouter error: ${response.status} - ${error}`)
+    const raw = await response.text()
+    if (response.status === 429) {
+      throw new Error('This model is temporarily rate limited. Please select a different model from the dropdown.')
+    }
+    if (response.status === 404) {
+      throw new Error('This model is no longer available on OpenRouter. Please select a different model.')
+    }
+    if (response.status === 402) {
+      throw new Error('Not enough OpenRouter credits for this model. Add your own API key in Settings → Account → API Keys, or switch to a free model.')
+    }
+    let msg = raw
+    try {
+      const parsed = JSON.parse(raw)
+      msg = parsed?.error?.message || raw
+    } catch {}
+    throw new Error(msg || `Request failed (${response.status})`)
   }
 
   const reader = response.body!.getReader()

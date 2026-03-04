@@ -1,9 +1,10 @@
 'use client'
 
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useChat } from '@/contexts/ChatContext'
-import { MessageSquare, Trash2, MoreHorizontal } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { Trash2, MoreHorizontal } from 'lucide-react'
 import { useState } from 'react'
 import { Conversation } from '@/types'
 
@@ -35,8 +36,9 @@ function groupByDate(convs: Conversation[]) {
 }
 
 export default function ChatList() {
-  const { conversations, searchQuery } = useSidebar()
-  const { activeConversationId } = useChat()
+  const { conversations, setConversations, searchQuery } = useSidebar()
+  const { activeConversationId, setActiveConversationId, setMessages } = useChat()
+  const { getToken } = useAuth()
   const router = useRouter()
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [menuId, setMenuId] = useState<string | null>(null)
@@ -51,15 +53,19 @@ export default function ChatList() {
     e.stopPropagation()
     setMenuId(null)
     try {
-      const { auth } = await import('@/lib/firebase-client')
-      const token = await auth.currentUser?.getIdToken()
+      const token = await getToken()
       if (!token) return
       await fetch(`/api/conversations?id=${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
-      const { useSidebar } = await import('@/contexts/SidebarContext')
-      window.location.reload()
+      // Update state without page reload
+      setConversations(conversations.filter(c => c.id !== id))
+      if (activeConversationId === id) {
+        setActiveConversationId(null)
+        setMessages([])
+        router.push('/chat')
+      }
     } catch {}
   }
 
