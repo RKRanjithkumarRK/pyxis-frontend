@@ -7,13 +7,14 @@ import toast from 'react-hot-toast'
 
 interface Props {
   onSend: (content: string) => void
+  onStop?: () => void
   onVoiceMode: () => void
   disabled?: boolean
 }
 
 type MicState = 'idle' | 'requesting' | 'listening' | 'denied' | 'unsupported'
 
-export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
+export default function ChatInput({ onSend, onStop, onVoiceMode, disabled }: Props) {
   const [input, setInput] = useState('')
   const [attachment, setAttachment] = useState<{ name: string; content: string } | null>(null)
   const [micState, setMicState] = useState<MicState>('idle')
@@ -228,16 +229,21 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
 
             {/* Right button */}
             <div className="shrink-0 mb-0.5">
-              {(hasContent || isStreaming) ? (
+              {isStreaming ? (
                 <button
-                  onClick={isStreaming ? undefined : handleSubmit}
-                  disabled={!hasContent && !isStreaming}
+                  onClick={onStop}
+                  className="w-8 h-8 rounded-full border-2 border-text-primary flex items-center justify-center text-text-primary hover:bg-surface-hover transition-colors"
+                  title="Stop generating"
+                >
+                  <Square size={12} fill="currentColor" />
+                </button>
+              ) : hasContent ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={disabled}
                   className="w-8 h-8 rounded-full bg-text-primary flex items-center justify-center text-bg hover:opacity-90 transition-opacity disabled:opacity-30"
                 >
-                  {isStreaming
-                    ? <Square size={14} fill="currentColor" />
-                    : <ArrowUp size={16} strokeWidth={2.5} />
-                  }
+                  <ArrowUp size={16} strokeWidth={2.5} />
                 </button>
               ) : (
                 <button

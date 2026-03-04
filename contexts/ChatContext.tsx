@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useRef, ReactNode } from 'react'
 import { Message } from '@/types'
 import { defaultModel } from '@/lib/models'
 
@@ -13,6 +13,7 @@ interface ChatContextType {
   setIsStreaming: (s: boolean) => void
   activeConversationId: string | null
   setActiveConversationId: (id: string | null) => void
+  abortController: React.MutableRefObject<AbortController | null>
 }
 
 const ChatContext = createContext<ChatContextType | null>(null)
@@ -22,6 +23,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [model, setModel] = useState(defaultModel)
   const [isStreaming, setIsStreaming] = useState(false)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const abortController = useRef<AbortController | null>(null)
 
   return (
     <ChatContext.Provider value={{
@@ -29,6 +31,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       model, setModel,
       isStreaming, setIsStreaming,
       activeConversationId, setActiveConversationId,
+      abortController,
     }}>
       {children}
     </ChatContext.Provider>

@@ -17,7 +17,11 @@ function PyxisIcon() {
   )
 }
 
-export default function MessageList() {
+interface Props {
+  onRegenerate?: () => void
+}
+
+export default function MessageList({ onRegenerate }: Props) {
   const { messages, isStreaming } = useChat()
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -25,19 +29,27 @@ export default function MessageList() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isStreaming])
 
+  // Find the last assistant message id
+  const lastAssistantId = [...messages].reverse().find(m => m.role === 'assistant')?.id ?? null
+
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="py-4">
+      <div className="py-6 pb-2">
         {messages.map(msg => (
-          <Message key={msg.id} message={msg} />
+          <Message
+            key={msg.id}
+            message={msg}
+            isLast={msg.id === lastAssistantId && !isStreaming}
+            onRegenerate={onRegenerate}
+          />
         ))}
         {isStreaming && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
-          <div className="w-full max-w-3xl mx-auto px-4 py-2">
+          <div className="w-full max-w-3xl mx-auto px-4 py-1.5">
             <div className="flex gap-4">
-              <div className="shrink-0 mt-0.5">
+              <div className="shrink-0 mt-1">
                 <PyxisIcon />
               </div>
-              <div className="pt-1">
+              <div className="pt-2">
                 <TypingIndicator />
               </div>
             </div>
