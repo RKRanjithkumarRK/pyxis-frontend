@@ -1,12 +1,12 @@
 'use client'
 
-import { useChat } from '@/contexts/ChatContext'
-
 const SUGGESTIONS = [
-  { label: 'Write Python code', prompt: 'Write a Python function that sorts a list of dictionaries by a given key.' },
-  { label: 'Explain a concept', prompt: 'Explain how neural networks work in simple terms.' },
-  { label: 'Draft an email', prompt: 'Write a professional email asking for a project status update.' },
-  { label: 'Debug my code', prompt: 'Help me debug this error: TypeError: cannot read property of undefined.' },
+  { label: '✨ Surprise me', prompt: "Tell me a fascinating fact I probably don't know." },
+  { label: '🖼️ Create image', prompt: 'Create a beautiful image of a serene mountain lake at sunrise.' },
+  { label: '✍️ Help me write', prompt: 'Help me write a compelling introduction for a blog post about AI and creativity.' },
+  { label: '💡 Brainstorm', prompt: 'Brainstorm 10 creative side project ideas I can build in a weekend.' },
+  { label: '📖 Explain a concept', prompt: 'Explain how large language models work in simple terms.' },
+  { label: '🐛 Debug code', prompt: "Help me debug this error: TypeError: Cannot read properties of undefined." },
 ]
 
 interface Props {
@@ -14,26 +14,19 @@ interface Props {
 }
 
 export default function WelcomeScreen({ onSend }: Props) {
-  const { model } = useChat()
-
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8">
-      <h1 className="text-3xl font-semibold text-text-primary mb-2">
-        How can I help you?
+    <div className="flex-1 flex flex-col items-center justify-center px-4 pb-12">
+      <h1 className="text-4xl font-semibold text-text-primary mb-8 text-center">
+        What can I help with?
       </h1>
-      <p className="text-text-tertiary text-sm mb-10">
-        Start a conversation or try one of these
-      </p>
-
-      <div className="grid grid-cols-2 gap-3 w-full max-w-xl">
+      <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
         {SUGGESTIONS.map(s => (
           <button
             key={s.label}
             onClick={() => onSend?.(s.prompt)}
-            className="text-left px-4 py-3 rounded-xl bg-surface hover:bg-surface-hover border border-border/50 transition-colors"
+            className="px-4 py-2.5 rounded-2xl bg-surface hover:bg-surface-hover border border-border/60 text-sm text-text-secondary hover:text-text-primary transition-colors whitespace-nowrap"
           >
-            <p className="text-sm font-medium text-text-primary">{s.label}</p>
-            <p className="text-xs text-text-tertiary mt-0.5 line-clamp-2">{s.prompt}</p>
+            {s.label}
           </button>
         ))}
       </div>

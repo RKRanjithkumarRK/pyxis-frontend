@@ -5,31 +5,42 @@ import { useChat } from '@/contexts/ChatContext'
 import Message from './Message'
 import TypingIndicator from './TypingIndicator'
 
+function PyxisIcon() {
+  return (
+    <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="white"/>
+        <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  )
+}
+
 export default function MessageList() {
   const { messages, isStreaming } = useChat()
   const bottomRef = useRef<HTMLDivElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isStreaming])
 
   return (
-    <div ref={containerRef} className="flex-1 overflow-y-auto">
-      <div className="max-w-3xl mx-auto px-4 py-4">
+    <div className="flex-1 overflow-y-auto">
+      <div className="py-4">
         {messages.map(msg => (
           <Message key={msg.id} message={msg} />
         ))}
         {isStreaming && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
-          <div className="flex gap-4 py-4">
-            <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-accent">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+          <div className="w-full max-w-3xl mx-auto px-4 py-2">
+            <div className="flex gap-4">
+              <div className="shrink-0 mt-0.5">
+                <PyxisIcon />
+              </div>
+              <div className="pt-1">
+                <TypingIndicator />
+              </div>
             </div>
-            <TypingIndicator />
           </div>
         )}
         <div ref={bottomRef} />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Mic, AudioLines, ArrowUp, Square, FileText, X, MicOff } from 'lucide-react'
+import { Plus, Mic, ArrowUp, Square, FileText, X, MicOff } from 'lucide-react'
 import { useChat } from '@/contexts/ChatContext'
 import toast from 'react-hot-toast'
 
@@ -30,7 +30,6 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
     }
   }, [input])
 
-  // Stop recognition on unmount
   useEffect(() => {
     return () => { recognitionRef.current?.stop() }
   }, [])
@@ -74,8 +73,6 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
       setShowMicPrompt(true)
       return
     }
-
-    // Check existing permission
     try {
       const perm = await navigator.permissions.query({ name: 'microphone' as PermissionName })
       if (perm.state === 'denied') {
@@ -84,8 +81,6 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
         return
       }
     } catch {}
-
-    // Show our in-app permission prompt first
     setShowMicPrompt(true)
     setMicState('requesting')
   }
@@ -94,24 +89,19 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
     setShowMicPrompt(false)
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) return
-
     try {
-      // Request mic access first
       await navigator.mediaDevices.getUserMedia({ audio: true })
     } catch {
       setMicState('denied')
       toast.error('Microphone access denied. Please allow it in browser settings.')
       return
     }
-
     const recognition = new SpeechRecognition()
     recognitionRef.current = recognition
     recognition.lang = 'en-US'
     recognition.interimResults = true
     recognition.continuous = false
-
     recognition.onstart = () => setMicState('listening')
-
     recognition.onresult = (e: any) => {
       let final = ''
       for (let i = 0; i < e.results.length; i++) {
@@ -119,9 +109,7 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
       }
       if (final) setInput(prev => prev ? prev + ' ' + final : final)
     }
-
     recognition.onend = () => setMicState('idle')
-
     recognition.onerror = (e: any) => {
       setMicState('idle')
       if (e.error === 'not-allowed') {
@@ -129,7 +117,6 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
         toast.error('Microphone blocked. Allow access in browser settings.')
       }
     }
-
     recognition.start()
   }
 
@@ -138,11 +125,13 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
     setMicState('idle')
   }
 
+  const hasContent = !!(input.trim() || attachment)
+
   return (
-    <div className="px-4 pb-4 pt-2">
+    <div className="px-4 pb-4 pt-2 shrink-0">
       <div className="max-w-3xl mx-auto">
 
-        {/* Mic permission / status dialog */}
+        {/* Mic permission dialog */}
         {showMicPrompt && (
           <div className="mb-3 p-4 bg-surface border border-border rounded-2xl shadow-lg">
             {micState === 'unsupported' ? (
@@ -153,7 +142,6 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
                 </div>
                 <p className="text-xs text-text-secondary">
                   Voice input requires <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
-                  Brave and Firefox block this API.
                 </p>
                 <button onClick={() => setShowMicPrompt(false)} className="text-xs text-accent hover:underline">Dismiss</button>
               </div>
@@ -164,7 +152,7 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
                   <p className="text-sm font-medium text-text-primary">Microphone blocked</p>
                 </div>
                 <p className="text-xs text-text-secondary">
-                  Click the lock icon in your browser's address bar and allow microphone access, then try again.
+                  Click the lock icon in your browser address bar and allow microphone access.
                 </p>
                 <button onClick={() => setShowMicPrompt(false)} className="text-xs text-accent hover:underline">Dismiss</button>
               </div>
@@ -175,7 +163,7 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
                   <p className="text-sm font-medium text-text-primary">Allow microphone access?</p>
                 </div>
                 <p className="text-xs text-text-secondary">
-                  Pyxis needs access to your microphone to transcribe your voice into text.
+                  Pyxis needs your microphone to transcribe voice into text.
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -207,71 +195,67 @@ export default function ChatInput({ onSend, onVoiceMode, disabled }: Props) {
           </div>
         )}
 
-        <div className="flex items-end gap-2 bg-surface rounded-3xl border border-border/50 px-4 py-3 input-glow">
-          {/* Attach button */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-1 rounded-full text-text-tertiary hover:text-text-secondary transition-colors shrink-0 mb-0.5"
-            title="Attach file (txt, md, json, csv — max 2MB)"
-          >
-            <Plus size={20} />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt,.md,.json,.csv,.js,.ts,.py,.html,.css,.xml,.yaml,.yml"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+        {/* Input container */}
+        <div className="flex flex-col bg-surface rounded-3xl border border-border/60 input-glow overflow-hidden">
+          <div className="flex items-end gap-2 px-3 py-3">
+            {/* Attach button — round with border like ChatGPT */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-text-tertiary hover:text-text-secondary hover:border-border-light transition-colors shrink-0 mb-0.5"
+              title="Attach file"
+            >
+              <Plus size={18} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,.md,.json,.csv,.js,.ts,.py,.html,.css,.xml,.yaml,.yml"
+              className="hidden"
+              onChange={handleFileChange}
+            />
 
-          {/* Textarea */}
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask anything"
-            rows={1}
-            className="flex-1 bg-transparent text-text-primary text-[15px] placeholder:text-text-tertiary outline-none resize-none max-h-[200px] leading-relaxed"
-            disabled={disabled}
-          />
+            {/* Textarea */}
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask anything"
+              rows={1}
+              className="flex-1 bg-transparent text-text-primary text-[15px] placeholder:text-text-tertiary outline-none resize-none max-h-[200px] leading-relaxed py-1"
+              disabled={disabled}
+            />
 
-          {/* Right buttons */}
-          <div className="flex items-center gap-1 shrink-0 mb-0.5">
-            {(input.trim() || attachment || isStreaming) ? (
-              <button
-                onClick={isStreaming ? undefined : handleSubmit}
-                disabled={(!input.trim() && !attachment && !isStreaming) || disabled}
-                className="p-2 rounded-full bg-text-primary text-bg hover:opacity-90 transition-opacity disabled:opacity-30"
-              >
-                {isStreaming ? <Square size={16} /> : <ArrowUp size={16} />}
-              </button>
-            ) : (
-              <>
-                {/* Mic button — shows active state when listening */}
+            {/* Right button */}
+            <div className="shrink-0 mb-0.5">
+              {(hasContent || isStreaming) ? (
+                <button
+                  onClick={isStreaming ? undefined : handleSubmit}
+                  disabled={!hasContent && !isStreaming}
+                  className="w-8 h-8 rounded-full bg-text-primary flex items-center justify-center text-bg hover:opacity-90 transition-opacity disabled:opacity-30"
+                >
+                  {isStreaming
+                    ? <Square size={14} fill="currentColor" />
+                    : <ArrowUp size={16} strokeWidth={2.5} />
+                  }
+                </button>
+              ) : (
                 <button
                   onClick={micState === 'listening' ? stopListening : startListening}
-                  className={`p-2 rounded-full transition-colors ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                     micState === 'listening'
                       ? 'text-danger bg-danger/10 animate-pulse'
-                      : 'text-text-tertiary hover:text-text-secondary'
+                      : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-hover'
                   }`}
                   title={micState === 'listening' ? 'Stop listening' : 'Voice input'}
                 >
-                  <Mic size={20} />
+                  <Mic size={18} />
                 </button>
-                {/* Voice mode button */}
-                <button
-                  onClick={onVoiceMode}
-                  className="p-2 rounded-full text-text-tertiary hover:text-text-secondary transition-colors"
-                  title="Full voice mode"
-                >
-                  <AudioLines size={20} />
-                </button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
         <p className="text-center text-xs text-text-tertiary mt-2">
           Pyxis can make mistakes. Check important info.
         </p>

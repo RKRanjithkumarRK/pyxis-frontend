@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Image, AppWindow, Code, X } from 'lucide-react'
+import { Search, Image, X } from 'lucide-react'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -11,11 +11,10 @@ export default function NavLinks() {
   const router = useRouter()
 
   return (
-    <div className="px-2 space-y-0.5">
-      {/* Search */}
+    <div className="px-2 py-1 space-y-0.5">
       {showSearch ? (
-        <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-surface">
-          <Search size={16} className="text-text-tertiary shrink-0" />
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-hover">
+          <Search size={15} className="text-text-tertiary shrink-0" />
           <input
             autoFocus
             value={searchQuery}
@@ -23,14 +22,17 @@ export default function NavLinks() {
             placeholder="Search chats..."
             className="flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-tertiary"
           />
-          <button onClick={() => { setShowSearch(false); setSearchQuery('') }} className="text-text-tertiary hover:text-text-primary">
+          <button
+            onClick={() => { setShowSearch(false); setSearchQuery('') }}
+            className="text-text-tertiary hover:text-text-primary transition-colors"
+          >
             <X size={14} />
           </button>
         </div>
       ) : (
         <button
           onClick={() => setShowSearch(true)}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
         >
           <Search size={16} />
           <span>Search chats</span>
@@ -39,10 +41,10 @@ export default function NavLinks() {
 
       <button
         onClick={() => router.push('/images')}
-        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover transition-colors"
+        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
       >
         <Image size={16} />
-        <span>Images</span>
+        <span>Image generation</span>
       </button>
     </div>
   )
