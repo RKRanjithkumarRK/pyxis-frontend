@@ -79,7 +79,7 @@ export default function AccountSettings() {
         <div className="bg-surface/50 rounded-xl p-4 space-y-2.5">
           <p className="text-sm font-medium text-accent flex items-center gap-2"><Sparkles size={16} />Pyxis Free — Your plan includes:</p>
           {[
-            'Free AI models: Llama 3.3 70B, DeepSeek R1, Mistral, Gemma',
+            'Free AI models: Auto (Free), Step 3.5 Flash, Trinity, Nemotron, Llama, Gemma',
             'Chat history saved to your account',
             'Image generation (free via Pollinations.ai)',
             'Custom instructions applied to every chat',

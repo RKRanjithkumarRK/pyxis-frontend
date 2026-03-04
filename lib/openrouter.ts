@@ -10,7 +10,7 @@ export async function streamChat(
   model: string,
   apiKey: string,
   systemPrompt?: string,
-  maxTokens = 4096,
+  maxTokens = 2048,
 ): Promise<ReadableStream<Uint8Array>> {
   const allMessages: ChatMessage[] = []
   if (systemPrompt) {
