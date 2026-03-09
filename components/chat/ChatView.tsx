@@ -129,12 +129,14 @@ export default function ChatView({ conversationId }: Props) {
           try {
             const parsed = JSON.parse(data)
             if (parsed.content) {
-              assistantContent += parsed.content
+              const chunk = parsed.content
+              assistantContent += chunk
+              // Use chunk directly in functional update — avoids stale closure
               setMessages(prev => {
                 const updated = [...prev]
                 const last = updated[updated.length - 1]
                 if (last?.role === 'assistant') {
-                  updated[updated.length - 1] = { ...last, content: assistantContent }
+                  updated[updated.length - 1] = { ...last, content: last.content + chunk }
                 }
                 return updated
               })

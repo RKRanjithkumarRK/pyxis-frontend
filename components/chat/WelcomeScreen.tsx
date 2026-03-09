@@ -1,12 +1,12 @@
 'use client'
 
 const SUGGESTIONS = [
-  { label: '✨ Surprise me', prompt: "Tell me a fascinating fact I probably don't know." },
-  { label: '🖼️ Create image', prompt: 'Create a beautiful image of a serene mountain lake at sunrise.' },
-  { label: '✍️ Help me write', prompt: 'Help me write a compelling introduction for a blog post about AI and creativity.' },
-  { label: '💡 Brainstorm', prompt: 'Brainstorm 10 creative side project ideas I can build in a weekend.' },
-  { label: '📖 Explain a concept', prompt: 'Explain how large language models work in simple terms.' },
-  { label: '🐛 Debug code', prompt: "Help me debug this error: TypeError: Cannot read properties of undefined." },
+  { label: '🐍 Python web scraper', prompt: 'Write a Python web scraper using BeautifulSoup that extracts article titles and links from a news website.' },
+  { label: '⚛️ Explain quantum computing', prompt: 'Explain quantum computing simply — what it is, how it works, and why it matters.' },
+  { label: '📧 Write a cold email', prompt: 'Help me write a cold email to a potential client for my freelance web development services.' },
+  { label: '📰 Summarize AI news', prompt: 'Summarize the latest developments and news in artificial intelligence from 2025 and 2026.' },
+  { label: '⚡ React todo app', prompt: 'Build a React todo app with hooks — useState, useEffect, and useCallback — with add, complete, and delete functionality.' },
+  { label: '🚀 Become a developer', prompt: 'What should I learn to become a developer in 2026? Give me a clear, practical roadmap.' },
 ]
 
 interface Props {

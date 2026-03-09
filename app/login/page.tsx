@@ -14,11 +14,12 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [guestLoading, setGuestLoading] = useState(false)
   const router = useRouter()
-  const { user, loading: authLoading, signIn, signUp, signInWithGoogle } = useAuth()
+  const { user, loading: authLoading, signIn, signUp, signInWithGoogle, signInAsGuest } = useAuth()
 
   useEffect(() => {
-    if (!authLoading && user) router.push('/chat')
+    if (!authLoading && user) router.push('/hub')
   }, [user, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,7 +33,7 @@ export default function LoginPage() {
         await signIn(email, password)
         toast.success('Welcome back!')
       }
-      router.push('/chat')
+      router.push('/hub')
     } catch (err: any) {
       const msg =
         err.code === 'auth/user-not-found' ? 'No account found. Sign up first.' :
@@ -51,13 +52,25 @@ export default function LoginPage() {
     setGoogleLoading(true)
     try {
       await signInWithGoogle()
-      router.push('/chat')
+      router.push('/hub')
     } catch (err: any) {
       if (err.code !== 'auth/popup-closed-by-user') {
         toast.error(err.message)
       }
     } finally {
       setGoogleLoading(false)
+    }
+  }
+
+  const handleGuest = async () => {
+    setGuestLoading(true)
+    try {
+      await signInAsGuest()
+      router.push('/hub')
+    } catch (err: any) {
+      toast.error('Could not start guest session: ' + err.message)
+    } finally {
+      setGuestLoading(false)
     }
   }
 
@@ -102,7 +115,7 @@ export default function LoginPage() {
           {/* Google */}
           <button
             onClick={handleGoogle}
-            disabled={googleLoading}
+            disabled={googleLoading || guestLoading}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface hover:bg-surface-hover text-text-primary text-sm font-medium transition-colors disabled:opacity-50"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
@@ -112,6 +125,23 @@ export default function LoginPage() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
             {googleLoading ? 'Signing in...' : 'Continue with Google'}
+          </button>
+
+          {/* Guest */}
+          <button
+            onClick={handleGuest}
+            disabled={guestLoading || googleLoading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-transparent hover:bg-surface-hover text-text-secondary text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {guestLoading ? (
+              <span className="w-4 h-4 border-2 border-text-tertiary border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            )}
+            {guestLoading ? 'Starting guest session...' : 'Try as Guest — no sign up needed'}
           </button>
 
           {/* Divider */}

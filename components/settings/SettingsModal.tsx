@@ -1,26 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Settings, Bell, Palette, AppWindow, Database, Shield, Users, User } from 'lucide-react'
+import { X, Settings, Palette, Database, Shield, User } from 'lucide-react'
 import { SettingsTab } from '@/types'
 import GeneralSettings from './GeneralSettings'
-import NotificationSettings from './NotificationSettings'
 import PersonalizationSettings from './PersonalizationSettings'
-import AppsSettings from './AppsSettings'
 import DataControlsSettings from './DataControlsSettings'
 import SecuritySettings from './SecuritySettings'
-import ParentalControls from './ParentalControls'
 import AccountSettings from './AccountSettings'
 
 const tabs: { id: SettingsTab; label: string; icon: any }[] = [
-  { id: 'general', label: 'General', icon: Settings },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'personalization', label: 'Personalization', icon: Palette },
-  { id: 'apps', label: 'Apps', icon: AppWindow },
-  { id: 'data', label: 'Data controls', icon: Database },
-  { id: 'security', label: 'Security', icon: Shield },
-  { id: 'parental', label: 'Parental controls', icon: Users },
-  { id: 'account', label: 'Account', icon: User },
+  { id: 'general',         label: 'General',         icon: Settings },
+  { id: 'personalization', label: 'Personalization', icon: Palette  },
+  { id: 'data',            label: 'Data controls',   icon: Database },
+  { id: 'security',        label: 'Security',        icon: Shield   },
+  { id: 'account',         label: 'Account',         icon: User     },
 ]
 
 interface Props {
@@ -40,14 +34,11 @@ export default function SettingsModal({ onClose }: Props) {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'general': return <GeneralSettings />
-      case 'notifications': return <NotificationSettings />
+      case 'general':         return <GeneralSettings />
       case 'personalization': return <PersonalizationSettings />
-      case 'apps': return <AppsSettings />
-      case 'data': return <DataControlsSettings />
-      case 'security': return <SecuritySettings />
-      case 'parental': return <ParentalControls />
-      case 'account': return <AccountSettings />
+      case 'data':            return <DataControlsSettings />
+      case 'security':        return <SecuritySettings />
+      case 'account':         return <AccountSettings />
     }
   }
 

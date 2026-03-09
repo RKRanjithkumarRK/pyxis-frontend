@@ -24,16 +24,24 @@ interface Props {
 export default function MessageList({ onRegenerate }: Props) {
   const { messages, isStreaming } = useChat()
   const bottomRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (!containerRef.current) return
+    if (isStreaming) {
+      // Instant scroll during streaming — prevents smooth-scroll overshooting
+      // which visually clips the first characters of new content
+      containerRef.current.scrollTop = containerRef.current.scrollHeight
+    } else {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages, isStreaming])
 
   // Find the last assistant message id
   const lastAssistantId = [...messages].reverse().find(m => m.role === 'assistant')?.id ?? null
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div ref={containerRef} className="flex-1 overflow-y-auto">
       <div className="py-6 pb-2">
         {messages.map(msg => (
           <Message

@@ -3,8 +3,36 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Copy, Check, RefreshCw, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import python from 'react-syntax-highlighter/dist/cjs/languages/prism/python'
+import javascript from 'react-syntax-highlighter/dist/cjs/languages/prism/javascript'
+import typescript from 'react-syntax-highlighter/dist/cjs/languages/prism/typescript'
+import jsx from 'react-syntax-highlighter/dist/cjs/languages/prism/jsx'
+import tsx from 'react-syntax-highlighter/dist/cjs/languages/prism/tsx'
+import bash from 'react-syntax-highlighter/dist/cjs/languages/prism/bash'
+import json from 'react-syntax-highlighter/dist/cjs/languages/prism/json'
+import css from 'react-syntax-highlighter/dist/cjs/languages/prism/css'
+import sql from 'react-syntax-highlighter/dist/cjs/languages/prism/sql'
+import markdown from 'react-syntax-highlighter/dist/cjs/languages/prism/markdown'
+SyntaxHighlighter.registerLanguage('python', python)
+SyntaxHighlighter.registerLanguage('javascript', javascript)
+SyntaxHighlighter.registerLanguage('js', javascript)
+SyntaxHighlighter.registerLanguage('typescript', typescript)
+SyntaxHighlighter.registerLanguage('ts', typescript)
+SyntaxHighlighter.registerLanguage('jsx', jsx)
+SyntaxHighlighter.registerLanguage('tsx', tsx)
+SyntaxHighlighter.registerLanguage('bash', bash)
+SyntaxHighlighter.registerLanguage('shell', bash)
+SyntaxHighlighter.registerLanguage('sh', bash)
+SyntaxHighlighter.registerLanguage('json', json)
+SyntaxHighlighter.registerLanguage('css', css)
+SyntaxHighlighter.registerLanguage('sql', sql)
+SyntaxHighlighter.registerLanguage('markdown', markdown)
+import { Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Play } from 'lucide-react'
 import { Message as MessageType } from '@/types'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface Props {
   message: MessageType
@@ -24,11 +52,10 @@ function PyxisIcon() {
   )
 }
 
-function CodeBlock({ node, inline, className, children, ...props }: any) {
+function CodeBlock({ language, code }: { language: string; code: string }) {
   const [copied, setCopied] = useState(false)
-  const match = /language-(\w+)/.exec(className || '')
-  const language = match ? match[1] : ''
-  const code = String(children).replace(/\n$/, '')
+  const { resolvedTheme } = useTheme()
+  const isLight = resolvedTheme === 'light'
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code)
@@ -36,31 +63,77 @@ function CodeBlock({ node, inline, className, children, ...props }: any) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (inline) {
-    return (
-      <code className="px-1.5 py-0.5 rounded-md bg-white/10 font-mono text-[0.85em] text-text-primary" {...props}>
-        {children}
-      </code>
-    )
-  }
-
   return (
-    <div className="relative my-4 rounded-xl overflow-hidden border border-white/10">
-      {/* Header bar with language + copy button */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#161616]">
-        <span className="text-xs text-[#9ca3af] font-mono select-none">{language || 'code'}</span>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 text-xs text-[#9ca3af] hover:text-white transition-colors"
-        >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? 'Copied!' : 'Copy code'}
-        </button>
+    <div
+      className="relative my-4 rounded-xl overflow-hidden"
+      style={{ border: `1px solid var(--border)` }}
+    >
+      {/* Header — ChatGPT style */}
+      <div
+        className="flex items-center justify-between px-4 py-2.5"
+        style={{
+          background: isLight ? '#f5f5f5' : '#161616',
+          borderBottom: isLight ? 'none' : `1px solid var(--border)`,
+        }}
+      >
+        {/* Left: </> icon + language */}
+        <div className="flex items-center gap-1.5 select-none">
+          <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{'</>'}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'monospace', textTransform: 'capitalize' }}>
+            {language || 'code'}
+          </span>
+        </div>
+        {/* Right: Copy + Run */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 transition-colors"
+            style={{
+              fontSize: 12,
+              color: 'var(--text-tertiary)',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              padding: '3px 10px',
+              cursor: 'pointer',
+            }}
+          >
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+          <button
+            className="flex items-center gap-1.5 transition-colors"
+            style={{
+              fontSize: 12,
+              color: 'var(--text-tertiary)',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              padding: '3px 10px',
+              cursor: 'pointer',
+            }}
+          >
+            <Play size={12} />
+            Run
+          </button>
+        </div>
       </div>
-      {/* Code content */}
-      <pre className="overflow-x-auto bg-[#1e1e1e] px-4 py-4 text-sm leading-relaxed" {...props}>
-        <code className="font-mono text-[#e6edf3]">{code}</code>
-      </pre>
+      <SyntaxHighlighter
+        language={language || 'text'}
+        style={isLight ? oneLight : oneDark}
+        customStyle={{
+          margin: 0,
+          borderRadius: 0,
+          background: isLight ? '#f5f5f5' : '#1e1e1e',
+          fontSize: '0.875rem',
+          lineHeight: '1.6',
+          padding: '1rem',
+        }}
+        wrapLongLines={false}
+        PreTag="div"
+      >
+        {code}
+      </SyntaxHighlighter>
     </div>
   )
 }
@@ -104,12 +177,37 @@ export default function Message({ message, onRegenerate, isLast }: Props) {
         <div className="shrink-0 mt-1">
           <PyxisIcon />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div className="text-[15px] leading-relaxed text-text-primary">
             <div className="markdown-body">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
-                components={{ code: CodeBlock as any }}
+                components={{
+                  // Prevent react-markdown from wrapping CodeBlock in <pre>
+                  pre({ children }) {
+                    return <>{children}</>
+                  },
+                  code({ node, className, children, ...props }: any) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    const language = match ? match[1] : ''
+                    const code = String(children).replace(/\n$/, '')
+                    const isBlock = code.includes('\n') || !!language
+
+                    // Inline code: single word/expression, no newlines, no language
+                    if (!isBlock) {
+                      return (
+                        <code
+                          className="px-1.5 py-0.5 rounded-md bg-white/10 font-mono text-[0.85em] text-text-primary"
+                          {...props}
+                        >
+                          {children}
+                        </code>
+                      )
+                    }
+
+                    return <CodeBlock language={language} code={code} />
+                  },
+                }}
               >
                 {message.content}
               </ReactMarkdown>

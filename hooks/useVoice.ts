@@ -15,13 +15,15 @@ interface UseVoiceReturn {
 }
 
 export function useVoice(): UseVoiceReturn {
-  const [state, setState] = useState<VoiceState>('idle')
+  const [state, setState_] = useState<VoiceState>('idle')
+  const setState = (s: VoiceState) => { stateRef.current = s; setState_(s) }
   const [transcript, setTranscript] = useState('')
   const recognitionRef = useRef<any>(null)
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const stateRef = useRef<VoiceState>('idle')
 
   const isSupported = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
 
@@ -42,19 +44,20 @@ export function useVoice(): UseVoiceReturn {
   const start = useCallback(async () => {
     if (!isSupported) return
 
-    setState('permission')
+    setState('connecting')
 
     try {
-      await setupAnalyser()
-      setState('connecting')
-
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       const recognition = new SpeechRecognition()
       recognition.continuous = true
       recognition.interimResults = true
       recognition.lang = 'en-US'
 
-      recognition.onstart = () => setState('listening')
+      recognition.onstart = () => {
+        setState('listening')
+        // Set up audio analyser after mic is confirmed granted — non-blocking
+        setupAnalyser()
+      }
 
       recognition.onresult = (event: any) => {
         let text = ''
@@ -70,8 +73,8 @@ export function useVoice(): UseVoiceReturn {
       }
 
       recognition.onend = () => {
-        // Don't reset state if we're speaking
-        if (state !== 'speaking') {
+        // Don't reset state if we're speaking (use ref to avoid stale closure)
+        if (stateRef.current !== 'speaking') {
           setState('idle')
         }
       }
@@ -107,22 +110,57 @@ export function useVoice(): UseVoiceReturn {
   const speak = useCallback((text: string) => {
     if (!('speechSynthesis' in window)) return
     window.speechSynthesis.cancel()
-
     setState('speaking')
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 1
-    utterance.pitch = 1
 
-    // Try to use a natural voice
-    const voices = window.speechSynthesis.getVoices()
-    const preferred = voices.find(v => v.name.includes('Google') || v.name.includes('Natural')) || voices[0]
-    if (preferred) utterance.voice = preferred
+    // Chrome Bug Fix: delay 120ms after cancel() before speak() or onend never fires
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.rate = 1
+      utterance.pitch = 1
 
-    utterance.onend = () => setState('idle')
-    utterance.onerror = () => setState('idle')
+      const voices = window.speechSynthesis.getVoices()
+      const preferred =
+        voices.find(v => v.name === 'Google US English') ||
+        voices.find(v => v.name.includes('Google') && v.lang === 'en-US') ||
+        voices.find(v => v.lang.startsWith('en-US')) ||
+        voices[0]
+      if (preferred) utterance.voice = preferred
 
-    synthRef.current = utterance
-    window.speechSynthesis.speak(utterance)
+      let called = false
+      let ttsStarted = false
+
+      const done = () => {
+        if (called) return
+        called = true
+        clearInterval(pollId)
+        clearInterval(keepAliveId)
+        clearTimeout(fallbackId)
+        setState('idle')
+      }
+
+      utterance.onstart = () => { ttsStarted = true }
+      utterance.onend = done
+      utterance.onerror = done
+
+      window.speechSynthesis.speak(utterance)
+      synthRef.current = utterance
+
+      // Polling fallback: only after TTS actually started (prevents premature firing)
+      const pollId = setInterval(() => {
+        if (ttsStarted && !window.speechSynthesis.speaking) done()
+      }, 300)
+
+      // Keep-alive: Chrome pauses synthesis after ~15s
+      const keepAliveId = setInterval(() => {
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.pause()
+          window.speechSynthesis.resume()
+        }
+      }, 12000)
+
+      // Absolute fallback timer
+      const fallbackId = setTimeout(done, Math.max(text.length * 100, 5000))
+    }, 120)
   }, [])
 
   const stopSpeaking = useCallback(() => {

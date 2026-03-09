@@ -76,4 +76,4 @@ export interface ApiKeys {
 
 export type VoiceState = 'idle' | 'permission' | 'connecting' | 'listening' | 'speaking'
 
-export type SettingsTab = 'general' | 'notifications' | 'personalization' | 'apps' | 'data' | 'security' | 'parental' | 'account'
+export type SettingsTab = 'general' | 'personalization' | 'data' | 'security' | 'account'

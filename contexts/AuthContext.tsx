@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInAnonymously as firebaseSignInAnonymously,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   updateProfile,
@@ -20,6 +21,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, name: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
+  signInAsGuest: () => Promise<void>
   signOut: () => Promise<void>
   getToken: () => Promise<string | null>
 }
@@ -35,16 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(firebaseUser)
       setLoading(false)
       if (firebaseUser) {
-        const userRef = doc(db, 'users', firebaseUser.uid)
-        const userSnap = await getDoc(userRef)
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName || '',
-            photoURL: firebaseUser.photoURL || '',
-            createdAt: new Date().toISOString(),
-          })
+        try {
+          const userRef = doc(db, 'users', firebaseUser.uid)
+          const userSnap = await getDoc(userRef)
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName || '',
+              photoURL: firebaseUser.photoURL || '',
+              createdAt: new Date().toISOString(),
+            })
+          }
+        } catch (err) {
+          // Non-critical: Firestore user doc sync failed (e.g. permission rules)
+          console.warn('Firestore user profile sync skipped:', err)
         }
       }
     })
@@ -65,6 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithPopup(auth, provider)
   }
 
+  const signInAsGuest = async () => {
+    await firebaseSignInAnonymously(auth)
+  }
+
   const signOut = async () => {
     await firebaseSignOut(auth)
   }
@@ -75,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, signOut, getToken }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, signInAsGuest, signOut, getToken }}>
       {children}
     </AuthContext.Provider>
   )

@@ -21,11 +21,12 @@ export async function POST(request: NextRequest) {
   const user = await verifyToken(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name } = await request.json()
+  const { name, tags } = await request.json()
   const now = new Date().toISOString()
 
   const ref = await adminDb.collection(`users/${user.uid}/projects`).add({
     name: name || 'New Project',
+    tags: tags || [],
     createdAt: now,
     updatedAt: now,
   })

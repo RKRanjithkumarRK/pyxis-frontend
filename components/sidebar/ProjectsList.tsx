@@ -5,6 +5,7 @@ import { useSidebar } from '@/contexts/SidebarContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
+import toast from 'react-hot-toast'
 
 const CATEGORY_TAGS = [
   'Research', 'Coding', 'Writing', 'Homework',
@@ -82,7 +83,7 @@ export default function ProjectsList() {
         await loadProjects()
         router.push(`/project/${data.id}`)
       }
-    } catch {}
+    } catch { toast.error('Failed to create project') }
     setCreating(false)
   }
 

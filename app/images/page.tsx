@@ -87,7 +87,7 @@ export default function ImagesPage() {
           {loading && (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
               <Loader2 size={28} className="text-accent animate-spin" />
-              <span className="text-text-secondary text-sm">Generating your image, please wait...</span>
+              <span className="text-text-secondary text-sm">Generating your image, this may take up to 30 seconds...</span>
             </div>
           )}
 

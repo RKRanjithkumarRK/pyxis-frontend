@@ -41,11 +41,15 @@ export default function PersonalizationSettings() {
   const saveField = async (field: string, value: string) => {
     const token = await getToken()
     if (!token) return
-    await fetch('/api/profile', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ section: 'personalization', [field]: value }),
-    })
+    try {
+      await fetch('/api/profile', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'personalization', [field]: value }),
+      })
+    } catch {
+      // Non-critical: silently ignore individual field save failures
+    }
   }
 
   const saveInstructions = async () => {

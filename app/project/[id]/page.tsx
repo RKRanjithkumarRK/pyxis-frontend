@@ -64,7 +64,7 @@ export default function ProjectPage() {
           setNameInput('New Project')
         }
       }
-    } catch {}
+    } catch { toast.error('Failed to load project') }
     setLoadingProject(false)
   }
 
@@ -77,7 +77,7 @@ export default function ProjectPage() {
         const data = await res.json()
         setChats((data.conversations || []).filter((c: any) => c.projectId === projectId))
       }
-    } catch {}
+    } catch { toast.error('Failed to load chats') }
   }
 
   const loadSources = async () => {
@@ -91,7 +91,7 @@ export default function ProjectPage() {
         const data = await res.json()
         setSources(data.sources || [])
       }
-    } catch {}
+    } catch { toast.error('Failed to load sources') }
   }
 
   const handleRename = async () => {
@@ -129,7 +129,7 @@ export default function ProjectPage() {
         const data = await res.json()
         router.push(`/chat/${data.id}`)
       }
-    } catch {}
+    } catch { toast.error('Failed to create chat') }
   }
 
   const handleAddSource = async () => {
@@ -165,7 +165,7 @@ export default function ProjectPage() {
       })
       setSources(prev => prev.filter(s => s.id !== sourceId))
       toast.success('Source removed')
-    } catch {}
+    } catch { toast.error('Failed to remove source') }
   }
 
   const displayName = loadingProject ? 'Loading...' : (projectName || 'New Project')

@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Trash2, MoreHorizontal } from 'lucide-react'
 import { useState } from 'react'
 import { Conversation } from '@/types'
+import toast from 'react-hot-toast'
 
 function groupByDate(convs: Conversation[]) {
   const now = new Date()
@@ -66,7 +67,7 @@ export default function ChatList() {
         setMessages([])
         router.push('/chat')
       }
-    } catch {}
+    } catch { toast.error('Failed to delete') }
   }
 
   return (

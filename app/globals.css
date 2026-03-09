@@ -60,9 +60,11 @@ html.light ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
 ::selection { background: rgba(16,163,127,0.3); }
 
 *:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: none;
+}
+
+textarea:focus, input:focus {
+  outline: none;
 }
 
 /* ===== MARKDOWN ===== */
@@ -115,8 +117,8 @@ html.light .markdown-body :not(pre) > code { background: rgba(0,0,0,0.07); paddi
 /* Sidebar */
 .sidebar-transition { transition: width 0.2s ease, opacity 0.2s ease, transform 0.2s ease; }
 
-/* Input glow */
-.input-glow:focus-within { box-shadow: 0 0 0 1px rgba(16,163,127,0.3); }
+/* Input glow — removed green border */
+.input-glow:focus-within { box-shadow: none; }
 
 /* Ghost button */
 .btn-ghost { transition: background-color 0.15s ease; }
@@ -127,3 +129,13 @@ html.light .markdown-body :not(pre) > code { background: rgba(0,0,0,0.07); paddi
   0%, 100% { transform: scaleY(0.3); }
   50% { transform: scaleY(1); }
 }
+
+/* Voice page animations */
+@keyframes orbBreathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+@keyframes orbSpin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes orbRing    { 0%{transform:scale(0.88);opacity:0} 50%{opacity:1} 100%{transform:scale(1.22);opacity:0} }
+@keyframes waveBar    { from{transform:scaleY(0.15)} to{transform:scaleY(1)} }
+@keyframes dotBounce  { 0%,100%{transform:translateY(0);opacity:0.4} 50%{transform:translateY(-8px);opacity:1} }
+@keyframes idleDot    { 0%,100%{transform:scale(1);opacity:0.5} 50%{transform:scale(1.5);opacity:0.9} }
+@keyframes appear     { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.animate-appear       { animation:appear 0.3s ease-out forwards; }

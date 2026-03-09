@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
   // Update conversation
   const convRef = adminDb.doc(`users/${user.uid}/conversations/${conversationId}`)
   const conv = await convRef.get()
+  if (!conv.exists) return new Response('Conversation not found', { status: 404 })
   const data = conv.data()
 
   // Auto-title from first user message
