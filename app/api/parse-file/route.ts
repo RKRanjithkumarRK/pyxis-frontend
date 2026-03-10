@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     if (ext === 'pdf') {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse/lib/pdf-parse')
+      const pdfParse = require('pdf-parse')
       const data = await pdfParse(buffer)
       text = data.text?.trim() || ''
       if (!text) return NextResponse.json({ error: 'Could not extract text from PDF. It may be scanned/image-only.' }, { status: 422 })
