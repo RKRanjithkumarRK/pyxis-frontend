@@ -4,13 +4,13 @@ import { getFirestore } from 'firebase-admin/firestore'
 
 function ensureApp() {
   if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    })
+    const projectId   = (process.env.FIREBASE_PROJECT_ID   || '').trim()
+    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').trim()
+    const privateKey  = (process.env.FIREBASE_PRIVATE_KEY  || '').replace(/\\n/g, '\n')
+    if (!projectId || !clientEmail || !privateKey) {
+      console.error('[firebase-admin] Missing credentials:', { projectId: !!projectId, clientEmail: !!clientEmail, privateKey: !!privateKey })
+    }
+    initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) })
   }
 }
 
