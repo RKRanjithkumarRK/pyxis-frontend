@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 const themeScript = `
 (function() {
   try {
-    var t = localStorage.getItem('pyxis-theme') || 'system';
+    var t = localStorage.getItem('pyxis-theme') || 'dark';
     var r = t === 'system'
       ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
       : t;

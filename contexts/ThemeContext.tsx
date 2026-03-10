@@ -30,12 +30,12 @@ function applyTheme(resolved: 'dark' | 'light') {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system')
+  const [theme, setThemeState] = useState<Theme>('dark')
   const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('dark')
 
   // On mount: read saved preference
   useEffect(() => {
-    const saved = (localStorage.getItem('pyxis-theme') as Theme) || 'system'
+    const saved = (localStorage.getItem('pyxis-theme') as Theme) || 'dark'
     setThemeState(saved)
     const resolved = getResolved(saved)
     setResolvedTheme(resolved)

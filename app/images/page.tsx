@@ -47,17 +47,20 @@ export default function ImagesPage() {
 
   const handleDownload = async (url: string, prompt: string) => {
     try {
-      const res = await fetch(url)
+      const proxyUrl = '/api/images/proxy?url=' + encodeURIComponent(url)
+      const res = await fetch(proxyUrl)
+      if (!res.ok) throw new Error('Download failed')
       const blob = await res.blob()
       const blobUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = blobUrl
-      a.download = `pyxis-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`
+      a.download = `pyxis-${prompt.slice(0, 30).replace(/s+/g, '-')}.png`
+      document.body.appendChild(a)
       a.click()
-      URL.revokeObjectURL(blobUrl)
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 200)
     } catch {
-      // Fallback: open in new tab
-      window.open(url, '_blank')
+      toast.error('Failed to download image')
     }
   }
 
