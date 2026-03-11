@@ -58,15 +58,16 @@ export default function GeneratePage() {
   const [audioVoices,  setAudioVoices]  = useState<SpeechSynthesisVoice[]>([])
 
   /* ── Video state ── */
-  const [vidPrompt,  setVidPrompt]  = useState('')
-  const [vidLoading, setVidLoading] = useState(false)
-  const [vidUrl,     setVidUrl]     = useState('')
-  const [vidError,   setVidError]   = useState('')
-  const [vidElapsed, setVidElapsed] = useState(0)
+  const [vidPrompt,          setVidPrompt]          = useState('')
+  const [vidLoading,         setVidLoading]          = useState(false)
+  const [vidUrl,             setVidUrl]              = useState('')
+  const [vidError,           setVidError]            = useState('')
+  const [vidElapsed,         setVidElapsed]          = useState(0)
+  const [vidBalanceExhausted, setVidBalanceExhausted] = useState(false)
 
-  const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null)
-  const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null)
-  const tokenRef   = useRef<string | null>(null)
+  const pollRef  = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const tokenRef = useRef<string | null>(null)
 
   /* ── Cleanup on unmount ── */
   useEffect(() => () => { stopPolling() }, [])
@@ -144,14 +145,14 @@ export default function GeneratePage() {
 
   const generateVideo = async () => {
     if (!vidPrompt.trim() || vidLoading) return
-    setVidError(''); setVidLoading(true); setVidUrl('')
+    setVidError(''); setVidBalanceExhausted(false); setVidLoading(true); setVidUrl('')
     stopPolling()
 
     try {
       const token = await getToken()
       tokenRef.current = token
 
-      /* Step 1 — submit job (returns instantly with jobId) */
+      /* Step 1 — submit job (returns instantly with jobId + provider) */
       const res = await fetch('/api/video', {
         method: 'POST',
         headers: {
@@ -161,26 +162,34 @@ export default function GeneratePage() {
         body: JSON.stringify({ prompt: vidPrompt.trim() }),
       })
       const data = await res.json()
-      if (!res.ok || !data.jobId) throw new Error(data.error || 'Failed to start video generation')
 
-      const { jobId } = data
+      if (!res.ok || !data.jobId) {
+        if (data.balanceExhausted) {
+          setVidBalanceExhausted(true)
+          setVidError('fal.ai balance exhausted')
+        } else {
+          setVidError(data.error || 'Failed to start video generation')
+        }
+        setVidLoading(false)
+        return
+      }
+
+      const { jobId, provider } = data
       const startedAt = Date.now()
 
       /* Step 2 — poll /api/video/status every 4 s */
       pollRef.current = setInterval(async () => {
-        /* Timeout guard — give up after MAX_POLL_SECONDS */
         if ((Date.now() - startedAt) / 1000 > MAX_POLL_SECONDS) {
           stopPolling()
-          setVidError('Video generation timed out. Please try again with a simpler prompt.')
+          setVidError('Video generation timed out. Please try again.')
           setVidLoading(false)
           return
         }
 
         try {
           const t = tokenRef.current
-          const statusRes = await fetch(`/api/video/status?jobId=${encodeURIComponent(jobId)}`, {
-            headers: t ? { Authorization: `Bearer ${t}` } : {},
-          })
+          const url = `/api/video/status?jobId=${encodeURIComponent(jobId)}&provider=${provider}`
+          const statusRes = await fetch(url, { headers: t ? { Authorization: `Bearer ${t}` } : {} })
           const statusData = await statusRes.json()
 
           if (statusData.status === 'completed' && statusData.url) {
@@ -471,9 +480,28 @@ export default function GeneratePage() {
                   </div>
                 ) : vidError ? (
                   <div className="flex flex-col items-center gap-3 px-6 text-center">
-                    <AlertCircle size={24} className="text-red-400 opacity-70" />
-                    <p className="text-red-400 text-sm">{vidError}</p>
-                    <button onClick={generateVideo} className="text-xs text-accent hover:underline">Try again</button>
+                    <AlertCircle size={24} className={vidBalanceExhausted ? 'text-amber-400 opacity-80' : 'text-red-400 opacity-70'} />
+                    {vidBalanceExhausted ? (
+                      <>
+                        <p className="text-amber-400 text-sm font-medium">fal.ai balance exhausted</p>
+                        <p className="text-text-tertiary text-xs leading-relaxed max-w-[220px]">
+                          Your fal.ai account has run out of credits.
+                        </p>
+                        <a
+                          href="https://fal.ai/dashboard/billing"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors"
+                        >
+                          Top up at fal.ai →
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-red-400 text-sm">{vidError}</p>
+                        <button onClick={generateVideo} className="text-xs text-accent hover:underline">Try again</button>
+                      </>
+                    )}
                   </div>
                 ) : vidUrl ? (
                   <video src={vidUrl} controls autoPlay loop className="w-full h-full object-cover" />
