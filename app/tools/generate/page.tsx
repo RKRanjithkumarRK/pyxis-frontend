@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Sparkles, Download, Loader2, RefreshCw, Play, Square, Image as ImageIcon, Music, Video } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Sparkles, Download, Loader2, RefreshCw, Play, Square, Image as ImageIcon, Music, Video, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 type Tab = 'image' | 'audio' | 'video'
@@ -27,11 +27,21 @@ const IMAGE_STYLES = [
   'Cinematic', 'Minimal', 'Fantasy', 'Sci-Fi',
 ]
 
+const VIDEO_EXAMPLES = [
+  'a golden retriever running on a beach',
+  'ocean waves crashing on rocks at sunset',
+  'a candle flame flickering in the wind',
+  'timelapse of clouds moving over mountains',
+]
+
+const POLL_INTERVAL_MS = 4000
+const MAX_POLL_SECONDS  = 150
+
 export default function GeneratePage() {
   const { getToken } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>('image')
 
-  /* ── Image ── */
+  /* ── Image state ── */
   const [imgPrompt,  setImgPrompt]  = useState('')
   const [imgModel,   setImgModel]   = useState('flux')
   const [imgRatio,   setImgRatio]   = useState(0)
@@ -40,48 +50,46 @@ export default function GeneratePage() {
   const [imgUrl,     setImgUrl]     = useState('')
   const [imgError,   setImgError]   = useState('')
 
-  /* ── Audio ── */
+  /* ── Audio state ── */
   const [audioText,    setAudioText]    = useState('')
   const [audioVoice,   setAudioVoice]   = useState(0)
   const [audioRate,    setAudioRate]    = useState(1)
   const [audioPlaying, setAudioPlaying] = useState(false)
   const [audioVoices,  setAudioVoices]  = useState<SpeechSynthesisVoice[]>([])
 
-  /* ── Video ── */
-  const [vidPrompt,     setVidPrompt]     = useState('')
-  const [vidLoading,    setVidLoading]    = useState(false)
-  const [vidUrl,        setVidUrl]        = useState('')
-  const [vidSource,     setVidSource]     = useState('')
-  const [vidError,      setVidError]      = useState('')
-  const [vidNeedsToken, setVidNeedsToken] = useState(false)
-  const [vidHint,       setVidHint]       = useState(false)
-  const [vidElapsed,    setVidElapsed]    = useState(0)
+  /* ── Video state ── */
+  const [vidPrompt,  setVidPrompt]  = useState('')
+  const [vidLoading, setVidLoading] = useState(false)
+  const [vidUrl,     setVidUrl]     = useState('')
+  const [vidError,   setVidError]   = useState('')
+  const [vidElapsed, setVidElapsed] = useState(0)
 
-  const VID_EXAMPLES = [
-    'a golden retriever running on a beach',
-    'ocean waves crashing on rocks at sunset',
-    'a candle flame flickering in the wind',
-    'timelapse of clouds moving over mountains',
-  ]
+  const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null)
+  const tokenRef   = useRef<string | null>(null)
 
+  /* ── Cleanup on unmount ── */
+  useEffect(() => () => { stopPolling() }, [])
+
+  /* ── Elapsed timer ticks only while loading ── */
   useEffect(() => {
-    const loadVoices = () => {
+    if (!vidLoading) { setVidElapsed(0); clearInterval(timerRef.current!); return }
+    timerRef.current = setInterval(() => setVidElapsed(s => s + 1), 1000)
+    return () => clearInterval(timerRef.current!)
+  }, [vidLoading])
+
+  /* ── Load TTS voices ── */
+  useEffect(() => {
+    const load = () => {
       const v = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'))
       if (v.length) setAudioVoices(v)
     }
-    loadVoices()
-    window.speechSynthesis.onvoiceschanged = loadVoices
+    load()
+    window.speechSynthesis.onvoiceschanged = load
     return () => { window.speechSynthesis.onvoiceschanged = null }
   }, [])
 
-  /* elapsed timer for video */
-  useEffect(() => {
-    if (!vidLoading) { setVidElapsed(0); return }
-    const t = setInterval(() => setVidElapsed(s => s + 1), 1000)
-    return () => clearInterval(t)
-  }, [vidLoading])
-
-  /* ── Image generation — routes through server for Pollinations → Stable Horde fallback ── */
+  /* ───────────────────────── IMAGE ───────────────────────── */
   const generateImage = async () => {
     if (!imgPrompt.trim() || imgLoading) return
     setImgError(''); setImgLoading(true); setImgUrl('')
@@ -101,7 +109,7 @@ export default function GeneratePage() {
       if (!res.ok || !data.url) throw new Error(data.error || 'Generation failed')
       setImgUrl(data.url)
     } catch (e: any) {
-      setImgError(e.message || 'Generation failed. Try a different prompt or model.')
+      setImgError(e.message || 'Generation failed. Try a different prompt.')
     } finally {
       setImgLoading(false)
     }
@@ -109,15 +117,11 @@ export default function GeneratePage() {
 
   const downloadImage = () => {
     if (!imgUrl) return
-    const a = document.createElement('a')
-    a.href = imgUrl
-    a.download = 'pyxis-image.png'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    const a = document.createElement('a'); a.href = imgUrl; a.download = 'pyxis-image.png'
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
   }
 
-  /* ── Audio ── */
+  /* ───────────────────────── AUDIO ───────────────────────── */
   const playAudio = () => {
     if (!audioText.trim()) return
     window.speechSynthesis.cancel()
@@ -132,13 +136,22 @@ export default function GeneratePage() {
 
   const stopAudio = () => { window.speechSynthesis.cancel(); setAudioPlaying(false) }
 
-  /* ── Video generation ── */
+  /* ───────────────────────── VIDEO ───────────────────────── */
+  const stopPolling = () => {
+    if (pollRef.current)  { clearInterval(pollRef.current);  pollRef.current  = null }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+  }
+
   const generateVideo = async () => {
     if (!vidPrompt.trim() || vidLoading) return
-    setVidError(''); setVidNeedsToken(false); setVidHint(false)
-    setVidLoading(true); setVidUrl(''); setVidSource('')
+    setVidError(''); setVidLoading(true); setVidUrl('')
+    stopPolling()
+
     try {
       const token = await getToken()
+      tokenRef.current = token
+
+      /* Step 1 — submit job (returns instantly with jobId) */
       const res = await fetch('/api/video', {
         method: 'POST',
         headers: {
@@ -148,28 +161,53 @@ export default function GeneratePage() {
         body: JSON.stringify({ prompt: vidPrompt.trim() }),
       })
       const data = await res.json()
-      if (!res.ok || !data.url) {
-        setVidNeedsToken(!!data.needsSetup)
-        setVidHint(!!data.hint)
-        throw new Error(data.error || 'Video generation failed')
-      }
-      setVidUrl(data.url)
-      setVidSource(data.source || '')
+      if (!res.ok || !data.jobId) throw new Error(data.error || 'Failed to start video generation')
+
+      const { jobId } = data
+      const startedAt = Date.now()
+
+      /* Step 2 — poll /api/video/status every 4 s */
+      pollRef.current = setInterval(async () => {
+        /* Timeout guard — give up after MAX_POLL_SECONDS */
+        if ((Date.now() - startedAt) / 1000 > MAX_POLL_SECONDS) {
+          stopPolling()
+          setVidError('Video generation timed out. Please try again with a simpler prompt.')
+          setVidLoading(false)
+          return
+        }
+
+        try {
+          const t = tokenRef.current
+          const statusRes = await fetch(`/api/video/status?jobId=${encodeURIComponent(jobId)}`, {
+            headers: t ? { Authorization: `Bearer ${t}` } : {},
+          })
+          const statusData = await statusRes.json()
+
+          if (statusData.status === 'completed' && statusData.url) {
+            stopPolling()
+            setVidUrl(statusData.url)
+            setVidLoading(false)
+          } else if (statusData.status === 'failed') {
+            stopPolling()
+            setVidError(statusData.error || 'Video generation failed. Please try again.')
+            setVidLoading(false)
+          }
+          // else 'processing' → keep polling
+        } catch {
+          // network hiccup — keep polling silently
+        }
+      }, POLL_INTERVAL_MS)
     } catch (e: any) {
-      setVidError(e.message || 'Video generation failed. Please try again.')
-    } finally {
+      stopPolling()
+      setVidError(e.message || 'Failed to start video generation.')
       setVidLoading(false)
     }
   }
 
   const downloadVideo = () => {
     if (!vidUrl) return
-    const a = document.createElement('a')
-    a.href = vidUrl
-    a.download = 'pyxis-video.mp4'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    const a = document.createElement('a'); a.href = vidUrl; a.download = 'pyxis-video.mp4'
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
   }
 
   const tabs: { id: Tab; icon: any; label: string }[] = [
@@ -178,9 +216,20 @@ export default function GeneratePage() {
     { id: 'video', icon: Video,     label: 'Video' },
   ]
 
+  /* ── progress bar width — caps at 95% until done ── */
+  const vidProgress = Math.min((vidElapsed / MAX_POLL_SECONDS) * 100, 95)
+
+  const vidStatusLabel =
+    vidElapsed < 10 ? 'Submitting to fal.ai…' :
+    vidElapsed < 30 ? 'Model warming up…' :
+    vidElapsed < 70 ? 'Generating frames…' :
+    'Almost there…'
+
   return (
     <div className="min-h-screen bg-bg">
       <div className="max-w-4xl mx-auto px-6 py-10">
+
+        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-violet-500 flex items-center justify-center shadow-lg">
@@ -219,7 +268,7 @@ export default function GeneratePage() {
                   value={imgPrompt}
                   onChange={e => setImgPrompt(e.target.value)}
                   onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateImage() }}
-                  placeholder="Describe what you want to create... (Ctrl+Enter to generate)"
+                  placeholder="Describe what you want to create… (Ctrl+Enter to generate)"
                   rows={4}
                   className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none focus:border-accent transition-colors"
                 />
@@ -249,7 +298,9 @@ export default function GeneratePage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Style <span className="text-text-tertiary font-normal normal-case">(optional)</span></label>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+                  Style <span className="text-text-tertiary font-normal normal-case">(optional)</span>
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {IMAGE_STYLES.map(s => (
                     <button key={s} onClick={() => setImgStyle(imgStyle === s ? '' : s)}
@@ -266,10 +317,11 @@ export default function GeneratePage() {
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
               >
                 {imgLoading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                {imgLoading ? 'Generating...' : 'Generate Image'}
+                {imgLoading ? 'Generating…' : 'Generate Image'}
               </button>
             </div>
 
+            {/* Preview */}
             <div className="flex flex-col gap-3">
               <div className={`w-full rounded-2xl border border-border overflow-hidden flex items-center justify-center bg-surface ${
                 ASPECT_RATIOS[imgRatio].h > ASPECT_RATIOS[imgRatio].w ? 'aspect-[9/16]' : 'aspect-square'
@@ -279,13 +331,13 @@ export default function GeneratePage() {
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-violet-500 flex items-center justify-center animate-pulse">
                       <Sparkles size={20} className="text-white" />
                     </div>
-                    <p className="text-text-tertiary text-sm">Generating your image...</p>
-                    <p className="text-text-tertiary text-xs">This may take a few seconds</p>
+                    <p className="text-text-tertiary text-sm">Generating your image…</p>
                   </div>
                 ) : imgError ? (
                   <div className="flex flex-col items-center gap-2 px-6 text-center">
+                    <AlertCircle size={24} className="text-red-400 opacity-70" />
                     <p className="text-red-400 text-sm">{imgError}</p>
-                    <button onClick={generateImage} className="text-xs text-accent hover:underline">Try again</button>
+                    <button onClick={generateImage} className="text-xs text-accent hover:underline mt-1">Try again</button>
                   </div>
                 ) : imgUrl ? (
                   <img src={imgUrl} alt="Generated" className="w-full h-full object-cover" />
@@ -293,7 +345,7 @@ export default function GeneratePage() {
                   <div className="flex flex-col items-center gap-2 text-center px-6">
                     <ImageIcon size={32} className="text-text-tertiary opacity-30" />
                     <p className="text-text-tertiary text-sm">Your image will appear here</p>
-                    <p className="text-text-tertiary text-xs">Powered by Flux AI — free, no API key needed</p>
+                    <p className="text-text-tertiary text-xs">Powered by Flux AI · free, no API key needed</p>
                   </div>
                 )}
               </div>
@@ -319,7 +371,7 @@ export default function GeneratePage() {
               <textarea
                 value={audioText}
                 onChange={e => setAudioText(e.target.value)}
-                placeholder="Enter the text you want to convert to speech..."
+                placeholder="Enter the text you want to convert to speech…"
                 rows={6}
                 className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none focus:border-accent transition-colors"
               />
@@ -331,7 +383,7 @@ export default function GeneratePage() {
                   className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-text-primary outline-none focus:border-accent">
                   {audioVoices.length > 0 ? audioVoices.map((v, i) => (
                     <option key={i} value={i}>{v.name}</option>
-                  )) : <option>Loading voices...</option>}
+                  )) : <option>Loading voices…</option>}
                 </select>
               </div>
               <div>
@@ -351,11 +403,9 @@ export default function GeneratePage() {
                 </button>
               )}
             </div>
-            <div className="bg-surface border border-border rounded-xl p-4">
-              <p className="text-xs text-text-tertiary leading-relaxed">
-                Audio generation uses your browser&apos;s built-in Text-to-Speech engine. Chrome on Desktop offers the best quality voices including Google Neural voices.
-              </p>
-            </div>
+            <p className="text-xs text-text-tertiary leading-relaxed">
+              Audio uses your browser&apos;s built-in Text-to-Speech engine. Chrome on Desktop offers the best quality voices.
+            </p>
           </div>
         )}
 
@@ -374,13 +424,13 @@ export default function GeneratePage() {
                   value={vidPrompt}
                   onChange={e => setVidPrompt(e.target.value.slice(0, 150))}
                   onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateVideo() }}
-                  placeholder="Describe the video... e.g. 'a golden retriever running on a beach'"
+                  placeholder="Describe the video… e.g. 'ocean waves crashing at sunset'"
                   rows={4}
                   className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none focus:border-accent transition-colors"
                 />
                 {/* Example prompts */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {VID_EXAMPLES.map(ex => (
+                  {VIDEO_EXAMPLES.map(ex => (
                     <button
                       key={ex}
                       onClick={() => setVidPrompt(ex)}
@@ -391,13 +441,7 @@ export default function GeneratePage() {
                   ))}
                 </div>
               </div>
-              <div className="bg-surface border border-border rounded-xl p-4 space-y-1.5">
-                <p className="text-xs font-semibold text-text-secondary">Tips for best results</p>
-                <p className="text-xs text-text-tertiary leading-relaxed">· Keep prompts short and specific (under 100 chars)</p>
-                <p className="text-xs text-text-tertiary leading-relaxed">· Describe motion: "waves crashing", "fire burning"</p>
-                <p className="text-xs text-text-tertiary leading-relaxed">· Generates 2–4 second clips · takes 15–90 seconds</p>
-                <p className="text-xs text-text-tertiary leading-relaxed">· Add <code className="bg-surface-hover px-1 rounded text-[10px]">FAL_KEY</code> to Vercel for 15-second generation</p>
-              </div>
+
               <button
                 onClick={generateVideo}
                 disabled={!vidPrompt.trim() || vidLoading}
@@ -408,58 +452,28 @@ export default function GeneratePage() {
               </button>
             </div>
 
+            {/* Preview */}
             <div className="flex flex-col gap-3">
               <div className="w-full aspect-video rounded-2xl border border-border overflow-hidden flex items-center justify-center bg-surface">
                 {vidLoading ? (
-                  <div className="flex flex-col items-center gap-3 px-6 text-center">
+                  <div className="flex flex-col items-center gap-3 px-6 text-center w-full">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center animate-pulse">
                       <Video size={20} className="text-white" />
                     </div>
-                    <p className="text-text-tertiary text-sm">
-                      {vidElapsed < 20 ? 'Starting video model…' : vidElapsed < 50 ? 'Generating frames…' : 'Finishing up…'}
-                    </p>
+                    <p className="text-text-secondary text-sm font-medium">{vidStatusLabel}</p>
                     <p className="text-text-tertiary text-xs">{vidElapsed}s elapsed</p>
-                    <div className="w-full max-w-xs bg-surface-hover rounded-full h-1.5 mt-1 overflow-hidden">
+                    <div className="w-full max-w-xs bg-surface-hover rounded-full h-1.5 overflow-hidden">
                       <div
                         className="bg-gradient-to-r from-orange-500 to-red-500 h-1.5 rounded-full transition-all duration-1000"
-                        style={{ width: `${Math.min((vidElapsed / 90) * 100, 95)}%` }}
+                        style={{ width: `${vidProgress}%` }}
                       />
                     </div>
                   </div>
                 ) : vidError ? (
                   <div className="flex flex-col items-center gap-3 px-6 text-center">
-                    {vidNeedsToken ? (
-                      <>
-                        <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                          <Video size={18} className="text-amber-400" />
-                        </div>
-                        <p className="text-amber-400 text-sm font-medium">Setup Required</p>
-                        <p className="text-text-tertiary text-xs leading-relaxed max-w-xs">
-                          Add <code className="bg-surface-hover px-1 rounded text-[10px]">FAL_KEY</code> to Vercel env vars for fast video.{' '}
-                          Get a free key at{' '}
-                          <a href="https://fal.ai" target="_blank" rel="noopener noreferrer" className="text-accent underline">fal.ai</a>.
-                        </p>
-                      </>
-                    ) : vidHint ? (
-                      <>
-                        <Video size={24} className="text-text-tertiary opacity-40" />
-                        <p className="text-text-secondary text-sm font-medium">Prompt too complex</p>
-                        <p className="text-text-tertiary text-xs leading-relaxed max-w-xs">Try a shorter, simpler prompt. Click an example below:</p>
-                        <div className="flex flex-wrap gap-1 justify-center mt-1">
-                          {VID_EXAMPLES.slice(0, 2).map(ex => (
-                            <button key={ex} onClick={() => { setVidPrompt(ex); setVidError(''); setVidHint(false) }}
-                              className="text-[10px] px-2 py-1 rounded-full bg-surface border border-border text-accent hover:bg-surface-hover transition-all">
-                              {ex}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-red-400 text-sm">{vidError}</p>
-                        <button onClick={generateVideo} className="text-xs text-accent hover:underline mt-1">Try again</button>
-                      </>
-                    )}
+                    <AlertCircle size={24} className="text-red-400 opacity-70" />
+                    <p className="text-red-400 text-sm">{vidError}</p>
+                    <button onClick={generateVideo} className="text-xs text-accent hover:underline">Try again</button>
                   </div>
                 ) : vidUrl ? (
                   <video src={vidUrl} controls autoPlay loop className="w-full h-full object-cover" />
@@ -467,17 +481,13 @@ export default function GeneratePage() {
                   <div className="flex flex-col items-center gap-2 text-center px-6">
                     <Video size={32} className="text-text-tertiary opacity-30" />
                     <p className="text-text-tertiary text-sm">Your video will appear here</p>
-                    <p className="text-text-tertiary text-xs">Powered by fal.ai · HuggingFace</p>
+                    <p className="text-text-tertiary text-xs">Powered by fal.ai · takes 30–90 seconds</p>
                   </div>
                 )}
               </div>
+
               {vidUrl && !vidLoading && (
                 <div className="flex gap-2">
-                  {vidSource && (
-                    <span className="self-center text-[10px] text-text-tertiary px-2 py-1 rounded-full bg-surface border border-border">
-                      via {vidSource === 'fal' ? 'fal.ai' : 'HuggingFace'}
-                    </span>
-                  )}
                   <button onClick={generateVideo} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-surface border border-border text-text-secondary hover:bg-surface-hover text-sm transition-colors">
                     <RefreshCw size={14} />Regenerate
                   </button>
