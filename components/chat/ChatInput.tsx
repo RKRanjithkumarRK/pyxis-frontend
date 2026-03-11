@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Mic, ArrowUp, Square, FileText, X, MicOff, AudioLines } from 'lucide-react'
 import { useChat } from '@/contexts/ChatContext'
 import toast from 'react-hot-toast'
@@ -8,7 +9,7 @@ import toast from 'react-hot-toast'
 interface Props {
   onSend: (content: string) => void
   onStop?: () => void
-  onVoiceMode: () => void
+  onVoiceMode?: () => void
   disabled?: boolean
   prefill?: string | null
   onPrefillConsumed?: () => void
@@ -26,6 +27,7 @@ export default function ChatInput({ onSend, onStop, onVoiceMode, disabled, prefi
   const fileInputRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
   const { isStreaming } = useChat()
+  const router = useRouter()
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -274,7 +276,7 @@ export default function ChatInput({ onSend, onStop, onVoiceMode, disabled, prefi
                 onKeyDown={handleKeyDown}
                 placeholder={micState === 'listening' ? 'Listening… speak now' : 'Ask anything'}
                 rows={1}
-                className="w-full bg-transparent text-text-primary text-[15px] placeholder:text-text-tertiary outline-none resize-none max-h-[200px] leading-relaxed"
+                className="w-full bg-transparent text-text-primary text-[15px] placeholder:text-text-tertiary outline-none resize-none max-h-[200px] overflow-y-hidden leading-relaxed"
                 disabled={disabled}
               />
               {/* Live interim speech overlay */}
@@ -308,7 +310,7 @@ export default function ChatInput({ onSend, onStop, onVoiceMode, disabled, prefi
                 <button
                   className="w-8 h-8 rounded-full flex items-center justify-center text-text-tertiary hover:text-text-secondary transition-colors"
                   title="Audio"
-                  onClick={onVoiceMode}
+                  onClick={() => router.push('/voice')}
                 >
                   <AudioLines size={17} />
                 </button>

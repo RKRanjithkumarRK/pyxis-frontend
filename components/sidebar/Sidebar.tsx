@@ -6,9 +6,10 @@ import NavLinks from './NavLinks'
 import ChatList from './ChatList'
 import ProjectsList from './ProjectsList'
 import UserMenu from './UserMenu'
+import SettingsModal from '@/components/settings/SettingsModal'
 
 export default function Sidebar() {
-  const { isOpen, toggle } = useSidebar()
+  const { isOpen, toggle, settingsOpen, setSettingsOpen } = useSidebar()
 
   return (
     <>
@@ -50,6 +51,7 @@ export default function Sidebar() {
           </>
         )}
       </aside>
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </>
   )
 }

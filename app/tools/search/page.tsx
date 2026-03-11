@@ -56,14 +56,14 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0f] text-white">
+    <div className="h-full flex flex-col bg-bg text-text-primary">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#1f1f2e] flex-shrink-0">
+      <div className="px-6 py-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3 mb-1">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
             <Globe className="w-4 h-4 text-white" />
           </div>
-          <h1 className="font-semibold text-white">AI Web Search</h1>
+          <h1 className="font-semibold text-text-primary">AI Web Search</h1>
           <span className="text-xs bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full">Free · No API key</span>
         </div>
       </div>
@@ -72,14 +72,14 @@ export default function SearchPage() {
         <div className="max-w-3xl mx-auto">
           {/* Search bar */}
           <div className="flex gap-3 mb-8">
-            <div className="flex-1 flex items-center gap-3 bg-[#111118] border border-[#2a2a3e] focus-within:border-indigo-500/50 rounded-xl px-4 py-3 transition-all">
-              <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+            <div className="flex-1 flex items-center gap-3 bg-surface border border-border focus-within:border-indigo-500/50 rounded-xl px-4 py-3 transition-all">
+              <Search className="w-4 h-4 text-text-tertiary flex-shrink-0" />
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && search()}
                 placeholder="Search anything… AI will synthesize the results"
-                className="flex-1 bg-transparent text-white placeholder-zinc-600 outline-none text-sm"
+                className="flex-1 bg-transparent text-text-primary placeholder:text-text-tertiary outline-none text-sm"
               />
             </div>
             <button onClick={search} disabled={loading || !query.trim()}
@@ -90,32 +90,32 @@ export default function SearchPage() {
 
           {/* AI Answer */}
           {(streamText || aiAnswer) && (
-            <div className="mb-6 p-5 bg-[#111118] border border-indigo-500/20 rounded-2xl">
+            <div className="mb-6 p-5 bg-surface border border-indigo-500/20 rounded-2xl">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 <span className="text-sm font-medium text-indigo-400">AI Answer</span>
               </div>
-              <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">{streamText || aiAnswer}</p>
+              <p className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap">{streamText || aiAnswer}</p>
             </div>
           )}
 
           {/* Web Results */}
           {results.length > 0 && (
             <div>
-              <p className="text-xs text-zinc-600 uppercase tracking-wider mb-3">Web Sources</p>
+              <p className="text-xs text-text-tertiary uppercase tracking-wider mb-3">Web Sources</p>
               <div className="space-y-3">
                 {results.map((r, i) => (
                   <a key={i} href={r.url} target="_blank" rel="noopener noreferrer"
-                    className="block p-4 bg-[#111118] border border-[#1f1f2e] rounded-xl hover:border-blue-500/30 transition-all group">
+                    className="block p-4 bg-surface border border-border rounded-xl hover:border-blue-500/30 transition-all group">
                     <div className="flex items-start gap-3">
-                      <span className="text-xs font-mono text-zinc-600 mt-0.5">[{i+1}]</span>
+                      <span className="text-xs font-mono text-text-tertiary mt-0.5">[{i+1}]</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors truncate">{r.title}</h3>
-                          <ExternalLink className="w-3 h-3 text-zinc-600 flex-shrink-0" />
+                          <h3 className="text-sm font-medium text-text-primary group-hover:text-blue-300 transition-colors truncate">{r.title}</h3>
+                          <ExternalLink className="w-3 h-3 text-text-tertiary flex-shrink-0" />
                         </div>
-                        <p className="text-xs text-zinc-500 mt-1 line-clamp-2">{r.snippet}</p>
-                        <p className="text-xs text-zinc-700 mt-1 truncate">{r.url}</p>
+                        <p className="text-xs text-text-tertiary mt-1 line-clamp-2">{r.snippet}</p>
+                        <p className="text-xs text-text-tertiary mt-1 truncate">{r.url}</p>
                       </div>
                     </div>
                   </a>
@@ -126,8 +126,8 @@ export default function SearchPage() {
 
           {!loading && !streamText && results.length === 0 && (
             <div className="text-center py-16">
-              <Globe className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-              <p className="text-zinc-600">Search anything — AI will find and synthesize the answer</p>
+              <Globe className="w-12 h-12 text-text-tertiary mx-auto mb-4" />
+              <p className="text-text-tertiary">Search anything — AI will find and synthesize the answer</p>
             </div>
           )}
         </div>

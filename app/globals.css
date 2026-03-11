@@ -176,3 +176,6 @@ html.light .markdown-body :not(pre) > code { background: rgba(0,0,0,0.07); paddi
 @keyframes idleDot    { 0%,100%{transform:scale(1);opacity:0.5} 50%{transform:scale(1.5);opacity:0.9} }
 @keyframes appear     { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 .animate-appear       { animation:appear 0.3s ease-out forwards; }
+
+/* Bounce animation for loading dots (used in code/tools pages) */
+@keyframes bounce { 0%,100%{transform:translateY(0);opacity:0.5} 50%{transform:translateY(-8px);opacity:1} }

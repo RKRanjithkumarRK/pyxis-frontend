@@ -46,15 +46,27 @@ export default function ImagesPage() {
   }
 
   const handleDownload = async (url: string, prompt: string) => {
+    const filename = `pyxis-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`
     try {
-      const proxyUrl = '/api/images/proxy?url=' + encodeURIComponent(url)
-      const res = await fetch(proxyUrl)
-      if (!res.ok) throw new Error('Download failed')
-      const blob = await res.blob()
+      let blob: Blob
+      if (url.startsWith('data:')) {
+        // Base64 data URI — decode directly without proxy
+        const [header, b64] = url.split(',')
+        const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
+        const binary = atob(b64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+        blob = new Blob([bytes], { type: mime })
+      } else {
+        // External URL — route through proxy
+        const res = await fetch('/api/images/proxy?url=' + encodeURIComponent(url))
+        if (!res.ok) throw new Error('Download failed')
+        blob = await res.blob()
+      }
       const blobUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = blobUrl
-      a.download = `pyxis-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`
+      a.download = filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

@@ -101,25 +101,25 @@ export default function CodePage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0f] text-white">
+    <div className="h-full flex flex-col bg-bg text-text-primary">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#1f1f2e] flex-shrink-0">
+      <div className="px-6 py-4 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 bg-gradient-to-br ${mode.color} rounded-lg flex items-center justify-center`}>
               <mode.icon className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-semibold text-white">{mode.label}</h1>
+            <h1 className="font-semibold text-text-primary">{mode.label}</h1>
             <span className="text-xs bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full">Free</span>
           </div>
           {/* Mode tabs */}
-          <div className="flex gap-1 bg-[#111118] border border-[#2a2a3e] rounded-xl p-1">
+          <div className="flex gap-1 bg-surface border border-border rounded-xl p-1">
             {MODES.map(m => (
               <button
                 key={m.id}
                 onClick={() => { setMode(m); setOutput(''); setInput('') }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  mode.id === m.id ? 'bg-[#2a2a3e] text-white' : 'text-zinc-500 hover:text-zinc-300'
+                  mode.id === m.id ? 'bg-surface-hover text-text-primary' : 'text-text-tertiary hover:text-text-secondary'
                 }`}
               >
                 <m.icon className="w-3.5 h-3.5" />
@@ -140,10 +140,10 @@ export default function CodePage() {
               onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) run() }}
               placeholder={mode.placeholder}
               rows={4}
-              className="w-full bg-[#111118] border border-[#2a2a3e] focus:border-indigo-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none resize-none transition-all"
+              className="w-full bg-surface border border-border focus:border-indigo-500/50 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none transition-all"
             />
             <div className="flex items-center justify-between mt-3">
-              <p className="text-xs text-zinc-600">Press Ctrl+Enter to generate</p>
+              <p className="text-xs text-text-tertiary">Press Ctrl+Enter to generate</p>
               <button
                 onClick={run}
                 disabled={streaming || !input.trim()}
@@ -158,7 +158,7 @@ export default function CodePage() {
           {/* Quick prompts — hidden while generating or output is shown */}
           {!output && !streaming && (
             <div className="mb-6">
-              <p className="text-xs text-zinc-600 uppercase tracking-wider mb-3">Quick Start</p>
+              <p className="text-xs text-text-tertiary uppercase tracking-wider mb-3">Quick Start</p>
               <div className="flex flex-wrap gap-2">
                 {mode.id === 'code' && [
                   'Next.js 14 dashboard with auth and dark mode',
@@ -168,7 +168,7 @@ export default function CodePage() {
                   'Stripe payment integration in Node.js',
                 ].map(s => (
                   <button key={s} onClick={() => setInput(s)}
-                    className="px-3 py-1.5 bg-[#111118] border border-[#2a2a3e] rounded-lg text-xs text-zinc-400 hover:text-white hover:border-green-500/40 transition-all">
+                    className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs text-text-secondary hover:text-text-primary hover:border-green-500/40 transition-all">
                     {s}
                   </button>
                 ))}
@@ -179,7 +179,7 @@ export default function CodePage() {
                   'No-code website builder for restaurants',
                 ].map(s => (
                   <button key={s} onClick={() => setInput(s)}
-                    className="px-3 py-1.5 bg-[#111118] border border-[#2a2a3e] rounded-lg text-xs text-zinc-400 hover:text-white hover:border-slate-500/40 transition-all">
+                    className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs text-text-secondary hover:text-text-primary hover:border-slate-500/40 transition-all">
                     {s}
                   </button>
                 ))}
@@ -190,7 +190,7 @@ export default function CodePage() {
                   'React vs Next.js — which should you use?',
                 ].map(s => (
                   <button key={s} onClick={() => setInput(s)}
-                    className="px-3 py-1.5 bg-[#111118] border border-[#2a2a3e] rounded-lg text-xs text-zinc-400 hover:text-white hover:border-red-500/40 transition-all">
+                    className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs text-text-secondary hover:text-text-primary hover:border-red-500/40 transition-all">
                     {s}
                   </button>
                 ))}
@@ -200,38 +200,37 @@ export default function CodePage() {
 
           {/* Generating indicator — shown while waiting for response */}
           {streaming && !output && (
-            <div className="bg-[#111118] border border-[#1f1f2e] rounded-2xl p-8 flex flex-col items-center gap-4">
+            <div className="bg-surface border border-border rounded-2xl p-8 flex flex-col items-center gap-4">
               <div className="flex gap-2 items-center">
                 {[0,1,2].map(i => (
                   <div key={i} className={`w-2.5 h-2.5 rounded-full bg-gradient-to-br ${mode.color}`}
                     style={{ animation: `bounce 1s ease-in-out ${i * 0.15}s infinite` }} />
                 ))}
               </div>
-              <p className="text-zinc-500 text-sm">Generating {mode.label.toLowerCase()}… this may take a moment</p>
-              <style jsx>{`@keyframes bounce { 0%,100%{transform:translateY(0);opacity:0.5} 50%{transform:translateY(-8px);opacity:1} }`}</style>
+              <p className="text-text-tertiary text-sm">Generating {mode.label.toLowerCase()}… this may take a moment</p>
             </div>
           )}
 
           {/* Output */}
           {output && (
-            <div className="bg-[#111118] border border-[#1f1f2e] rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f2e]">
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <div className="flex items-center gap-2">
                   <div className={`w-5 h-5 rounded-md bg-gradient-to-br ${mode.color} flex items-center justify-center`}>
                     <mode.icon className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-zinc-200">{mode.label} Output</span>
+                  <span className="text-sm font-medium text-text-primary">{mode.label} Output</span>
                 </div>
                 <button
                   onClick={copy}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2a2a3e] hover:bg-[#333345] rounded-lg text-xs text-zinc-300 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-hover hover:bg-surface-hover rounded-lg text-xs text-text-secondary transition-all"
                 >
                   {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
               <div className="px-5 py-5 overflow-x-auto">
-                <pre className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                <pre className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap font-mono">
                   {output}
                 </pre>
               </div>

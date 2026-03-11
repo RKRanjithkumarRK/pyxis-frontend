@@ -5,7 +5,7 @@ import { useSidebar } from '@/contexts/SidebarContext'
 import { useChat } from '@/contexts/ChatContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { Trash2, MoreHorizontal, Pencil } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Conversation } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -45,6 +45,17 @@ export default function ChatList() {
   const [menuId, setMenuId] = useState<string | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuId) return
+    const close = (e: MouseEvent) => {
+      const t = e.target as Element
+      if (!t.closest('[data-menu-container]')) setMenuId(null)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [menuId])
 
   const filtered = searchQuery
     ? conversations.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -111,7 +122,7 @@ export default function ChatList() {
             <div
               key={conv.id}
               onMouseEnter={() => setHoveredId(conv.id)}
-              onMouseLeave={() => { setHoveredId(null); setMenuId(null) }}
+              onMouseLeave={() => setHoveredId(null)}
               onClick={() => renamingId !== conv.id && router.push(`/chat/${conv.id}`)}
               className={`group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors ${
                 activeConversationId === conv.id
@@ -151,7 +162,7 @@ export default function ChatList() {
 
               {/* Dropdown menu */}
               {menuId === conv.id && (
-                <div className="absolute right-0 top-full mt-1 z-50 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[140px]">
+                <div data-menu-container="" className="absolute right-0 top-full z-50 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[140px]">
                   <button
                     onClick={(e) => startRename(conv, e)}
                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-surface-hover"

@@ -4,13 +4,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { ArrowUp, MessageSquare, FileText, Plus, Link, Trash2, Pencil, Check, X, Loader2 } from 'lucide-react'
+import { ArrowUp, MessageSquare, FileText, Plus, Link, Trash2, Pencil, Check, X, Loader2, Upload } from 'lucide-react'
 import { Conversation } from '@/types'
 import toast from 'react-hot-toast'
 
 interface Source {
   id: string
-  type: 'text' | 'url'
+  type: 'text' | 'url' | 'file'
   content: string
   label: string
   createdAt: string
@@ -34,6 +34,8 @@ export default function ProjectPage() {
   const [sourceType, setSourceType] = useState<'text' | 'url'>('text')
   const [loadingProject, setLoadingProject] = useState(true)
   const nameRef = useRef<HTMLInputElement>(null)
+  const fileSourceRef = useRef<HTMLInputElement>(null)
+  const [uploadingFile, setUploadingFile] = useState(false)
 
   // Wait for auth user before loading
   useEffect(() => {
@@ -155,6 +157,40 @@ export default function ProjectPage() {
     } catch { toast.error('Failed to add source') }
   }
 
+
+  const handleFileSource = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 50 * 1024 * 1024) { toast.error('File too large. Max 50MB.'); return }
+    e.target.value = ''
+    const token = await getToken()
+    if (!token) return
+    setUploadingFile(true)
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || ''
+      const binaryExts = ['pdf', 'doc', 'docx', 'xlsx', 'xls', 'pptx', 'ppt']
+      let content = ''
+      if (binaryExts.includes(ext)) {
+        const form = new FormData()
+        form.append('file', file)
+        const res = await fetch('/api/parse-file', { method: 'POST', body: form })
+        const data = await res.json()
+        if (!res.ok) { toast.error(data.error || 'Failed to parse file'); return }
+        content = data.text
+      } else {
+        content = await file.text()
+      }
+      const res = await fetch('/api/projects/sources', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, type: 'file', content, label: file.name }),
+      })
+      if (res.ok) { loadSources(); toast.success(`Added: ${file.name}`) }
+      else { toast.error('Failed to add file source') }
+    } catch { toast.error('Failed to upload file') }
+    finally { setUploadingFile(false) }
+  }
+
   const handleDeleteSource = async (sourceId: string) => {
     const token = await getToken()
     if (!token) return
@@ -269,9 +305,18 @@ export default function ProjectPage() {
                     <FileText size={12} />Text
                   </button>
                   <button onClick={() => setSourceType('url')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sourceType === 'url' ? 'bg-accent text-white' : 'bg-surface-hover text-text-secondary hover:text-text-primary'}`}>
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sourceType === 'url' ? 'bg-accent text-text-primary' : 'bg-surface-hover text-text-secondary hover:text-text-primary'}`}>
                     <Link size={12} />URL
                   </button>
+                  <button onClick={() => fileSourceRef.current?.click()}
+                    disabled={uploadingFile}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-surface-hover text-text-secondary hover:text-text-primary disabled:opacity-50">
+                    {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                    {uploadingFile ? 'Uploading...' : 'File'}
+                  </button>
+                  <input ref={fileSourceRef} type="file" className="hidden"
+                    accept=".txt,.md,.csv,.json,.pdf,.doc,.docx,.xlsx,.xls,.pptx,.ppt,.py,.js,.ts,.html,.css"
+                    onChange={handleFileSource} />
                 </div>
                 <div className="flex gap-2 items-end">
                   {sourceType === 'text' ? (
@@ -302,9 +347,7 @@ export default function ProjectPage() {
                 <p className="text-center text-sm text-text-tertiary py-8">No sources yet. Add text or URLs above.</p>
               ) : sources.map(src => (
                 <div key={src.id} className="flex items-start gap-3 px-4 py-3 rounded-lg bg-surface hover:bg-surface-hover transition-colors group">
-                  {src.type === 'url'
-                    ? <Link size={16} className="text-text-tertiary shrink-0 mt-0.5" />
-                    : <FileText size={16} className="text-text-tertiary shrink-0 mt-0.5" />}
+                  {src.type === 'url' ? <Link size={16} className="text-text-tertiary shrink-0 mt-0.5" /> : <FileText size={16} className="text-text-tertiary shrink-0 mt-0.5" />}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-text-primary font-medium truncate">{src.label}</p>
                     <p className="text-xs text-text-tertiary mt-0.5 truncate">{src.content}</p>

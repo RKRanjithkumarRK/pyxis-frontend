@@ -7,18 +7,31 @@ export const maxDuration = 30
 
 /* ── Keywords that suggest the query needs live web data ── */
 const SEARCH_TRIGGERS = [
+  // time-sensitive
   'today', 'tonight', 'yesterday', 'right now', 'happening',
   'latest', 'recent', 'just happened', 'breaking', 'news',
   'current', 'this week', 'this month', 'this year',
-  'weather', 'temperature', 'forecast',
-  'score', 'result', 'who won', 'winner',
-  'stock', 'price', 'market', 'crypto',
-  'released', 'launched', 'announced', 'new version',
-  '2025', '2026', '2027',
+  // weather
+  'weather', 'temperature', 'forecast', 'humidity', 'rain',
+  // sports
+  'score', 'result', 'who won', 'winner', 'match', 'game', 'tournament', 'championship', 'league',
+  // finance
+  'stock', 'price', 'market', 'crypto', 'bitcoin', 'share price', 'inflation', 'economy',
+  // tech
+  'released', 'launched', 'announced', 'new version', 'update', 'feature',
+  // years
+  '2024', '2025', '2026', '2027',
+  // knowledge queries
+  'who is', 'what is', 'tell me about', 'explain', 'definition',
+  'how many', 'how much', 'when was', 'when did', 'where is',
+  'population', 'capital of', 'president', 'prime minister', 'ceo',
+  'history of', 'facts about', 'information about',
 ]
 
 function needsSearch(text: string): boolean {
   const lower = text.toLowerCase()
+  // also search for any factual question that's long enough
+  if (lower.includes('?') && lower.split(' ').length > 4) return true
   return SEARCH_TRIGGERS.some(kw => lower.includes(kw))
 }
 
@@ -107,10 +120,14 @@ export async function POST(req: NextRequest) {
 
   /* ── System prompt (with optional web-search instruction) ── */
   const baseSys = systemPrompt ||
-    'You are Pyxis, a friendly and helpful voice AI assistant. ' +
-    'Reply in 1–3 short conversational sentences. ' +
-    'No markdown, bullets, or lists — plain spoken language only. ' +
-    'Never reveal your underlying model or provider. You are Pyxis.'
+    'You are Pyxis, a friendly, confident, and knowledgeable voice AI assistant. ' +
+    'Reply in 1-3 short conversational sentences. ' +
+    'No markdown, bullets, headers, or lists - plain spoken language only. ' +
+    'You have access to the internet and up-to-date information via web search. ' +
+    'Never say you cannot access the internet or that your knowledge has a cutoff date - use web search results instead. ' +
+    'If you are asked something difficult or complex, give your best answer confidently. ' +
+    'Never reveal your underlying model name, provider, or that you are built on any other AI. ' +
+    'You are Pyxis. Always.'
 
   const sysContent = webCtx
     ? `${baseSys}\n\nYou have live web search results. Use them to give an accurate, up-to-date answer. Cite naturally ("According to recent reports…").`
@@ -130,7 +147,7 @@ export async function POST(req: NextRequest) {
     ...augmentedMessages,
   ]
 
-  const reqBody = { messages: allMessages, stream: false, max_tokens: 200 }
+  const reqBody = { messages: allMessages, stream: false, max_tokens: 300 }
 
   /* ── 1. Google AI Studio — gemini-2.5-flash (most up-to-date model) ── */
   if (googleKey) {

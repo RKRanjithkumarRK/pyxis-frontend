@@ -9,7 +9,14 @@ export async function GET(req: NextRequest) {
   }
 
   // Only allow Pollinations and known image hosts
-  const allowed = ['image.pollinations.ai', 'oaidalleapiprodscus.blob.core.windows.net', 'cdn.openai.com']
+  const allowed = [
+    'image.pollinations.ai',
+    'cdn.openai.com',
+    // OpenAI DALL-E regional blob storage (varies by Azure region)
+    '.blob.core.windows.net',
+    // Stable Horde CDN
+    'stablehorde.net',
+  ]
   let hostname = ''
   try {
     hostname = new URL(url).hostname

@@ -38,19 +38,19 @@ export default function NewsPage() {
   useEffect(() => { load() }, [])
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0f] text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-bg text-text-primary overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-[#1f1f2e] flex-shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
             <Rss className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h1 className="font-semibold text-white">AI News Feed</h1>
-            <p className="text-xs text-zinc-500">Live from TechCrunch, VentureBeat, The Verge, MIT Tech Review</p>
+            <h1 className="font-semibold text-text-primary">AI News Feed</h1>
+            <p className="text-xs text-text-tertiary">Live from TechCrunch, VentureBeat, The Verge, MIT Tech Review</p>
           </div>
         </div>
-        <button onClick={load} disabled={loading} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f2e] hover:bg-[#2a2a3e] rounded-lg text-xs text-zinc-300 transition-all disabled:opacity-50">
+        <button onClick={load} disabled={loading} className="flex items-center gap-2 px-3 py-1.5 bg-surface-hover hover:bg-surface-hover rounded-lg text-xs text-text-secondary transition-all disabled:opacity-50">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
@@ -62,7 +62,7 @@ export default function NewsPage() {
           <div className="flex items-center justify-center h-48">
             <div className="flex flex-col items-center gap-3">
               <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-zinc-500 text-sm">Loading latest AI news…</p>
+              <p className="text-text-tertiary text-sm">Loading latest AI news…</p>
             </div>
           </div>
         )}
@@ -77,32 +77,32 @@ export default function NewsPage() {
                 href={article.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block p-4 bg-[#111118] border border-[#1f1f2e] rounded-xl hover:border-indigo-500/30 transition-all group"
+                className="block p-4 bg-surface border border-border rounded-xl hover:border-indigo-500/30 transition-all group"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${SOURCE_COLORS[article.source] || 'bg-zinc-500/10 text-zinc-400'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${SOURCE_COLORS[article.source] || 'bg-zinc-500/10 text-text-secondary'}`}>
                         {article.source}
                       </span>
                       {article.pubDate && (
-                        <span className="text-xs text-zinc-600">{timeAgo(article.pubDate)}</span>
+                        <span className="text-xs text-text-tertiary">{timeAgo(article.pubDate)}</span>
                       )}
                     </div>
-                    <h3 className="text-white font-medium text-sm leading-snug group-hover:text-indigo-300 transition-colors line-clamp-2">
+                    <h3 className="text-text-primary font-medium text-sm leading-snug group-hover:text-indigo-300 transition-colors line-clamp-2">
                       {article.title}
                     </h3>
                     {article.description && (
-                      <p className="text-zinc-500 text-xs mt-1 line-clamp-2">{article.description}</p>
+                      <p className="text-text-tertiary text-xs mt-1 line-clamp-2">{article.description}</p>
                     )}
                   </div>
-                  <ExternalLink className="w-4 h-4 text-zinc-600 group-hover:text-indigo-400 flex-shrink-0 transition-colors mt-0.5" />
+                  <ExternalLink className="w-4 h-4 text-text-tertiary group-hover:text-indigo-400 flex-shrink-0 transition-colors mt-0.5" />
                 </div>
               </a>
             ))}
 
             {articles.length === 0 && (
-              <div className="text-center text-zinc-600 py-12">No articles found. Try refreshing.</div>
+              <div className="text-center text-text-tertiary py-12">No articles found. Try refreshing.</div>
             )}
           </div>
         )}

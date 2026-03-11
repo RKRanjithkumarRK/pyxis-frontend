@@ -74,14 +74,14 @@ export default function ComparePage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0f] text-white">
+    <div className="h-full flex flex-col bg-bg text-text-primary">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#1f1f2e] flex-shrink-0">
+      <div className="px-6 py-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3 mb-1">
           <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
             <BarChart2 className="w-4 h-4 text-white" />
           </div>
-          <h1 className="font-semibold text-white">Model Comparison</h1>
+          <h1 className="font-semibold text-text-primary">Model Comparison</h1>
           <span className="text-xs bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full">All Free</span>
         </div>
       </div>
@@ -90,7 +90,7 @@ export default function ComparePage() {
         <div className="max-w-5xl mx-auto">
           {/* Model selector */}
           <div className="mb-6">
-            <p className="text-xs text-zinc-600 uppercase tracking-wider mb-3">Select Models to Compare</p>
+            <p className="text-xs text-text-tertiary uppercase tracking-wider mb-3">Select Models to Compare</p>
             <div className="flex flex-wrap gap-2">
               {MODELS.map(m => (
                 <button
@@ -98,13 +98,13 @@ export default function ComparePage() {
                   onClick={() => toggle(m.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all border ${
                     selected.includes(m.id)
-                      ? 'bg-[#1f1f2e] border-indigo-500/50 text-white'
-                      : 'bg-[#0f0f17] border-[#2a2a3e] text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-surface-hover border-indigo-500/50 text-text-primary'
+                      : 'bg-bg border-border text-text-tertiary hover:text-text-secondary'
                   }`}
                 >
-                  <Zap className={`w-3.5 h-3.5 ${selected.includes(m.id) ? m.color : 'text-zinc-600'}`} />
+                  <Zap className={`w-3.5 h-3.5 ${selected.includes(m.id) ? m.color : 'text-text-tertiary'}`} />
                   <span>{m.label}</span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${selected.includes(m.id) ? 'bg-white/10' : 'bg-zinc-800'} ${m.color}`}>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${selected.includes(m.id) ? 'bg-surface-active' : 'bg-surface'} ${m.color}`}>
                     {m.badge}
                   </span>
                 </button>
@@ -120,7 +120,7 @@ export default function ComparePage() {
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); run() } }}
               placeholder="Enter a prompt to compare all selected models side-by-side…"
               rows={2}
-              className="flex-1 bg-[#111118] border border-[#2a2a3e] focus:border-indigo-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none resize-none transition-all"
+              className="flex-1 bg-surface border border-border focus:border-indigo-500/50 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none transition-all"
             />
             <button
               onClick={run}
@@ -135,7 +135,7 @@ export default function ComparePage() {
           {/* Quick prompts */}
           {results.length === 0 && (
             <div className="mb-8">
-              <p className="text-xs text-zinc-600 uppercase tracking-wider mb-3">Try These</p>
+              <p className="text-xs text-text-tertiary uppercase tracking-wider mb-3">Try These</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   'Explain quantum entanglement simply',
@@ -144,7 +144,7 @@ export default function ComparePage() {
                   'Give me 5 SaaS startup ideas for 2026',
                 ].map(s => (
                   <button key={s} onClick={() => setPrompt(s)}
-                    className="px-3 py-1.5 bg-[#111118] border border-[#2a2a3e] rounded-lg text-xs text-zinc-400 hover:text-white hover:border-indigo-500/40 transition-all">
+                    className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs text-text-secondary hover:text-text-primary hover:border-indigo-500/40 transition-all">
                     {s}
                   </button>
                 ))}
@@ -156,31 +156,31 @@ export default function ComparePage() {
           {results.length > 0 && (
             <div className={`grid gap-4 ${results.length === 2 ? 'grid-cols-2' : results.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {results.map((r, i) => (
-                <div key={i} className="bg-[#111118] border border-[#1f1f2e] rounded-2xl overflow-hidden">
+                <div key={i} className="bg-surface border border-border rounded-2xl overflow-hidden">
                   {/* Model header */}
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f2e]">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div className="flex items-center gap-2">
                       <Zap className={`w-3.5 h-3.5 ${r.model.color}`} />
-                      <span className="text-sm font-medium text-white">{r.model.label}</span>
+                      <span className="text-sm font-medium text-text-primary">{r.model.label}</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded-full bg-white/5 ${r.model.color}`}>{r.model.badge}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {r.done ? (
-                        <span className="text-xs text-zinc-500">{(r.ms / 1000).toFixed(1)}s</span>
+                        <span className="text-xs text-text-tertiary">{(r.ms / 1000).toFixed(1)}s</span>
                       ) : (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-600" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-text-tertiary" />
                       )}
                     </div>
                   </div>
                   {/* Response */}
                   <div className="px-4 py-4 min-h-[160px]">
                     {r.text ? (
-                      <pre className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                      <pre className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap font-sans">
                         {r.text}
                         {!r.done && <span className="inline-block w-1.5 h-4 bg-indigo-400 ml-1 animate-pulse rounded-sm" />}
                       </pre>
                     ) : (
-                      <div className="flex items-center gap-2 text-zinc-600">
+                      <div className="flex items-center gap-2 text-text-tertiary">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span className="text-sm">Waiting for response…</span>
                       </div>
@@ -193,8 +193,8 @@ export default function ComparePage() {
 
           {results.length === 0 && (
             <div className="text-center py-12">
-              <BarChart2 className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-              <p className="text-zinc-600 text-sm">Select models above and enter a prompt to compare their responses side-by-side</p>
+              <BarChart2 className="w-12 h-12 text-text-tertiary mx-auto mb-4" />
+              <p className="text-text-tertiary text-sm">Select models above and enter a prompt to compare their responses side-by-side</p>
             </div>
           )}
         </div>

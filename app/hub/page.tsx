@@ -4,13 +4,13 @@ import { useRouter } from 'next/navigation'
 const SKILLS = [
   { num: 1,  title: 'Prompt Engineering',    desc: 'Write & refine powerful prompts for any AI model',        icon: '✍️',  href: '/chat',           color: 'from-violet-500 to-purple-600',   free: true  },
   { num: 2,  title: 'AI Workflow',           desc: 'Chain AI tasks into automated multi-step pipelines',      icon: '⚙️',  href: '/tools/agents',   color: 'from-orange-500 to-amber-500',    free: true  },
-  { num: 3,  title: 'AI Agents',             desc: 'AI-powered web search — find & synthesize live results',  icon: '🤖',  href: '/tools/search',   color: 'from-blue-500 to-cyan-500',       free: true  },
+  { num: 3,  title: 'AI Agents',             desc: 'Research, Code & Writing agents powered by AI',          icon: '🤖',  href: '/tools/agents',   color: 'from-blue-500 to-cyan-500',       free: true  },
   { num: 4,  title: 'RAG',                   desc: 'Chat with your documents using AI',                       icon: '📄',  href: '/tools/rag',      color: 'from-emerald-500 to-green-500',   free: true  },
   { num: 5,  title: 'Multimodal AI',         desc: 'Generate images from text — free, no API key needed',    icon: '👁️',  href: '/images',         color: 'from-pink-500 to-rose-500',       free: true  },
   { num: 6,  title: 'Fine-Tuning',           desc: 'Custom AI prompts & system instructions library',         icon: '🎛️',  href: '/tools/prompts',  color: 'from-indigo-500 to-blue-500',     free: true  },
   { num: 7,  title: 'Voice AI',              desc: 'Talk to AI — speech-to-text & text-to-speech',            icon: '🎙️',  href: '/voice',          color: 'from-teal-500 to-cyan-500',       free: true  },
   { num: 8,  title: 'AI Tool Stacking',      desc: 'Run the same prompt across multiple AI models at once',   icon: '🔧',  href: '/tools/compare',  color: 'from-yellow-500 to-orange-500',   free: true  },
-  { num: 9,  title: 'AI Video Content',      desc: 'Generate video scripts, storyboards & creative prompts',  icon: '🎬',  href: '/tools/code',     color: 'from-red-500 to-pink-500',        free: true  },
+  { num: 9,  title: 'AI Video Content',      desc: 'Generate AI videos from text — powered by fal.ai',        icon: '🎬',  href: '/tools/generate', color: 'from-red-500 to-pink-500',        free: true  },
   { num: 10, title: 'SaaS Development',      desc: 'AI code generator & software architecture helper',        icon: '💻',  href: '/tools/code',     color: 'from-slate-500 to-gray-600',      free: true  },
   { num: 11, title: 'LLM Management',        desc: 'Compare top free AI models side-by-side in real time',   icon: '📊',  href: '/tools/compare',  color: 'from-purple-500 to-violet-600',   free: true  },
   { num: 12, title: 'Staying Updated',       desc: 'Live AI news from TechCrunch, Verge, MIT & more',        icon: '📰',  href: '/tools/news',     color: 'from-cyan-500 to-blue-500',       free: true  },
@@ -25,7 +25,7 @@ export default function HubPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400 text-xs font-medium mb-4">
           ✨ 100% Free · No API Key Required
         </div>
-        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white via-indigo-200 to-purple-400 bg-clip-text text-transparent">
+        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-indigo-600 via-purple-500 to-violet-400 bg-clip-text text-transparent">
           12 AI Skills Hub
         </h1>
         <p className="text-text-secondary text-lg max-w-xl mx-auto">

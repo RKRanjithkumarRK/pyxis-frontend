@@ -47,7 +47,7 @@ export async function GET() {
   const results = await Promise.allSettled(
     FEEDS.map(async (feed) => {
       const res = await fetch(feed.url, {
-        headers: { 'User-Agent': 'NexusOne/1.0 RSS Reader' },
+        headers: { 'User-Agent': 'Pyxis/1.0 RSS Reader' },
         next: { revalidate: 1800 }, // cache 30 min
       })
       const xml = await res.text()

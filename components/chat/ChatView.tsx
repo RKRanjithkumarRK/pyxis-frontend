@@ -8,7 +8,6 @@ import ModelSelector from './ModelSelector'
 import WelcomeScreen from './WelcomeScreen'
 import MessageList from './MessageList'
 import ChatInput from './ChatInput'
-import VoiceMode from '@/components/voice/VoiceMode'
 import { Message } from '@/types'
 import { PanelLeft } from 'lucide-react'
 
@@ -26,7 +25,6 @@ export default function ChatView({ conversationId }: Props) {
   } = useChat()
   const { setConversations, isOpen, toggle } = useSidebar()
   const { getToken } = useAuth()
-  const [voiceMode, setVoiceMode] = useState(false)
   const [editContent, setEditContent] = useState<string | null>(null)
   const currentConvIdRef = useRef<string | null>(null)
   const messagesRef = useRef(messages)
@@ -265,10 +263,11 @@ export default function ChatView({ conversationId }: Props) {
     setTimeout(async () => {
       setIsStreaming(true)
       try {
-        // Get messages without the last assistant message
-        const currentMsgs = messages[messages.length - 1]?.role === 'assistant'
-          ? messages.slice(0, -1)
-          : messages
+        // Use ref (always current) to avoid stale closure on messages state
+        const latestMsgs = messagesRef.current
+        const currentMsgs = latestMsgs[latestMsgs.length - 1]?.role === 'assistant'
+          ? latestMsgs.slice(0, -1)
+          : latestMsgs
         const apiMessages = currentMsgs
           .filter(m => m.role === 'user' || m.role === 'assistant')
           .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
@@ -302,10 +301,6 @@ export default function ChatView({ conversationId }: Props) {
     }, 50)
   }, [isStreaming, getToken, setMessages, setIsStreaming, streamResponse])
 
-  if (voiceMode) {
-    return <VoiceMode onClose={() => setVoiceMode(false)} onSend={handleSend} />
-  }
-
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Top bar — sidebar toggle (when closed) sits inline left of ModelSelector */}
@@ -333,7 +328,6 @@ export default function ChatView({ conversationId }: Props) {
       <ChatInput
         onSend={handleSend}
         onStop={handleStop}
-        onVoiceMode={() => setVoiceMode(true)}
         prefill={editContent}
         onPrefillConsumed={() => setEditContent(null)}
       />

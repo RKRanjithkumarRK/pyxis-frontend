@@ -298,7 +298,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
                     if (!isBlock) {
                       return (
                         <code
-                          className="px-1.5 py-0.5 rounded-md bg-white/10 font-mono text-[0.85em] text-text-primary"
+                          className="px-1.5 py-0.5 rounded-md bg-surface border border-border/50 font-mono text-[0.85em] text-text-primary"
                           {...props}
                         >
                           {children}

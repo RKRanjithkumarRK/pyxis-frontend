@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const user = await verifyToken(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { prompt } = await req.json()
+  const { prompt, model = 'flux', width = 1024, height = 1024 } = await req.json()
   if (!prompt) return NextResponse.json({ error: 'Missing prompt' }, { status: 400 })
 
   const seed = Math.floor(Math.random() * 999999)
@@ -38,9 +38,9 @@ export async function POST(req: NextRequest) {
   // ── 1. Try Pollinations (fast, ~5-15s) ──────────────────────────────
   try {
     const encoded = encodeURIComponent(prompt)
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&seed=${seed}&nologo=true&model=flux&enhance=false`
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=${model}&enhance=true`
     const ctrl = new AbortController()
-    const t = setTimeout(() => ctrl.abort(), 20000)
+    const t = setTimeout(() => ctrl.abort(), 30000)
 
     const imgRes = await fetch(pollinationsUrl, {
       signal: ctrl.signal,

@@ -1,25 +1,26 @@
 'use client'
 
-import { Search, Image, X, Globe, Rss, Bot, FileText, BarChart2, Code2, Wand2, LayoutGrid, Mic } from 'lucide-react'
+import { Search, X, Globe, Rss, Bot, FileText, BarChart2, Code2, Wand2, LayoutGrid, Sparkles } from 'lucide-react'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 const TOOLS = [
-  { href: '/hub',           icon: LayoutGrid, label: 'AI Skills Hub',       color: 'text-indigo-400' },
-  { href: '/tools/search',  icon: Globe,      label: 'AI Web Search',       color: 'text-blue-400'   },
-  { href: '/tools/news',    icon: Rss,        label: 'AI News Feed',        color: 'text-cyan-400'   },
-  { href: '/tools/agents',  icon: Bot,        label: 'Multi-Agent',         color: 'text-orange-400' },
-  { href: '/tools/rag',     icon: FileText,   label: 'Document Q&A',        color: 'text-emerald-400'},
-  { href: '/tools/compare', icon: BarChart2,  label: 'Model Compare',       color: 'text-yellow-400' },
-  { href: '/tools/code',    icon: Code2,      label: 'Code Generator',      color: 'text-green-400'  },
-  { href: '/tools/prompts', icon: Wand2,      label: 'Prompt Library',      color: 'text-violet-400' },
+  { href: '/hub',            icon: LayoutGrid, label: 'AI Skills Hub',   color: 'text-indigo-400' },
+  { href: '/tools/generate', icon: Sparkles,   label: 'AI Studio',       color: 'text-pink-400'   },
+  { href: '/tools/search',   icon: Globe,      label: 'AI Web Search',   color: 'text-blue-400'   },
+  { href: '/tools/news',     icon: Rss,        label: 'AI News Feed',    color: 'text-cyan-400'   },
+  { href: '/tools/agents',   icon: Bot,        label: 'Multi-Agent',     color: 'text-orange-400' },
+  { href: '/tools/rag',      icon: FileText,   label: 'Document Q&A',   color: 'text-emerald-400'},
+  { href: '/tools/compare',  icon: BarChart2,  label: 'Model Compare',   color: 'text-yellow-400' },
+  { href: '/tools/code',     icon: Code2,      label: 'Code Generator',  color: 'text-green-400'  },
+  { href: '/tools/prompts',  icon: Wand2,      label: 'Prompt Library',  color: 'text-violet-400' },
 ]
 
 export default function NavLinks() {
   const { searchQuery, setSearchQuery } = useSidebar()
   const [showSearch, setShowSearch] = useState(false)
-  const router = useRouter()
+  const router   = useRouter()
   const pathname = usePathname()
 
   return (
@@ -51,27 +52,6 @@ export default function NavLinks() {
         </button>
       )}
 
-      <button
-        onClick={() => router.push('/images')}
-        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
-      >
-        <Image size={16} />
-        <span>Image generation</span>
-      </button>
-
-      <button
-        onClick={() => router.push('/voice')}
-        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-          pathname === '/voice'
-            ? 'bg-surface-hover text-text-primary'
-            : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
-        }`}
-      >
-        <Mic size={16} className={pathname === '/voice' ? 'text-teal-400' : undefined} />
-        <span>Voice Assistant</span>
-      </button>
-
-      {/* Divider */}
       <div className="pt-2 pb-1">
         <p className="px-3 text-[10px] font-semibold uppercase tracking-widest text-text-tertiary opacity-60">
           Free AI Tools
@@ -79,7 +59,7 @@ export default function NavLinks() {
       </div>
 
       {TOOLS.map(tool => {
-        const Icon = tool.icon
+        const Icon   = tool.icon
         const active = pathname === tool.href
         return (
           <button
@@ -94,9 +74,10 @@ export default function NavLinks() {
             <Icon size={16} className={active ? tool.color : undefined} />
             <span>{tool.label}</span>
             {tool.href === '/hub' && (
-              <span className="ml-auto text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded-full font-medium">
-                NEW
-              </span>
+              <span className="ml-auto text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded-full font-medium">NEW</span>
+            )}
+            {tool.href === '/tools/generate' && (
+              <span className="ml-auto text-[10px] bg-pink-500/10 text-pink-400 px-1.5 py-0.5 rounded-full font-medium">AI</span>
             )}
           </button>
         )

@@ -256,14 +256,14 @@ export default function PromptsPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0f] text-white">
+    <div className="h-full flex flex-col bg-bg text-text-primary">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#1f1f2e] flex-shrink-0">
+      <div className="px-6 py-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
             <Wand2 className="w-4 h-4 text-white" />
           </div>
-          <h1 className="font-semibold text-white">Prompt Engineering Library</h1>
+          <h1 className="font-semibold text-text-primary">Prompt Engineering Library</h1>
           <span className="text-xs bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full">9 Templates · Free</span>
         </div>
       </div>
@@ -276,18 +276,18 @@ export default function PromptsPage() {
               <div key={cat.name}>
                 <div className="flex items-center gap-2 mb-4">
                   <div className={`w-2 h-4 rounded-full bg-gradient-to-b ${cat.color}`} />
-                  <h2 className="text-white font-semibold">{cat.name}</h2>
+                  <h2 className="text-text-primary font-semibold">{cat.name}</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {cat.templates.map(t => (
                     <button
                       key={t.title}
                       onClick={() => select(cat.name, t)}
-                      className="group text-left p-4 bg-[#111118] border border-[#1f1f2e] rounded-xl hover:border-indigo-500/40 transition-all"
+                      className="group text-left p-4 bg-surface border border-border rounded-xl hover:border-indigo-500/40 transition-all"
                     >
-                      <h3 className="text-white text-sm font-medium mb-1 group-hover:text-indigo-300 transition-colors">{t.title}</h3>
-                      <p className="text-zinc-500 text-xs">{t.desc}</p>
-                      <div className="flex items-center gap-1 mt-3 text-xs text-zinc-600 group-hover:text-indigo-400 transition-colors">
+                      <h3 className="text-text-primary text-sm font-medium mb-1 group-hover:text-indigo-300 transition-colors">{t.title}</h3>
+                      <p className="text-text-tertiary text-xs">{t.desc}</p>
+                      <div className="flex items-center gap-1 mt-3 text-xs text-text-tertiary group-hover:text-indigo-400 transition-colors">
                         <span>Use template</span>
                         <ChevronRight className="w-3 h-3" />
                       </div>
@@ -302,16 +302,16 @@ export default function PromptsPage() {
           <div className="max-w-4xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <button onClick={() => setSelected(null)} className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors mb-1">
+                <button onClick={() => setSelected(null)} className="text-xs text-text-tertiary hover:text-text-secondary transition-colors mb-1">
                   ← Back to templates
                 </button>
-                <h2 className="text-white font-semibold">{selected.title}</h2>
-                <p className="text-xs text-zinc-500">{selected.category}</p>
+                <h2 className="text-text-primary font-semibold">{selected.title}</h2>
+                <p className="text-xs text-text-tertiary">{selected.category}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => copy(customized)}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-[#1f1f2e] hover:bg-[#2a2a3e] rounded-lg text-xs text-zinc-300 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-surface-hover hover:bg-surface-hover rounded-lg text-xs text-text-secondary transition-all"
                 >
                   {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                   {copied ? 'Copied!' : 'Copy Prompt'}
@@ -330,26 +330,26 @@ export default function PromptsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Prompt editor */}
               <div>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider mb-2">Customize Prompt</p>
+                <p className="text-xs text-text-tertiary uppercase tracking-wider mb-2">Customize Prompt</p>
                 <textarea
                   value={customized}
                   onChange={e => setCustomized(e.target.value)}
                   rows={18}
-                  className="w-full bg-[#111118] border border-[#2a2a3e] focus:border-indigo-500/50 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 outline-none resize-none transition-all font-mono"
+                  className="w-full bg-surface border border-border focus:border-indigo-500/50 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none transition-all font-mono"
                 />
               </div>
 
               {/* Output */}
               <div>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider mb-2">AI Response</p>
-                <div className="h-[calc(18*1.5rem+2.5rem)] bg-[#111118] border border-[#1f1f2e] rounded-xl px-4 py-3 overflow-y-auto">
+                <p className="text-xs text-text-tertiary uppercase tracking-wider mb-2">AI Response</p>
+                <div className="h-[calc(18*1.5rem+2.5rem)] bg-surface border border-border rounded-xl px-4 py-3 overflow-y-auto">
                   {output ? (
-                    <pre className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                    <pre className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap font-sans">
                       {output}
                       {streaming && <span className="inline-block w-1.5 h-4 bg-indigo-400 ml-1 animate-pulse rounded-sm" />}
                     </pre>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-zinc-600 text-sm">
+                    <div className="h-full flex items-center justify-center text-text-tertiary text-sm">
                       {streaming ? (
                         <div className="flex items-center gap-2">
                           <Loader2 className="w-4 h-4 animate-spin" />
