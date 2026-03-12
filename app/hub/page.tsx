@@ -1,545 +1,304 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Search, Zap, TrendingUp, Shield, Globe, ArrowRight, Star,
-  Clock, Flame, Sparkles, ChevronRight, X,
+  Activity,
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  CheckCircle2,
+  Command,
+  Globe2,
+  Lock,
+  Network,
+  Radar,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Wand2,
+  Workflow,
 } from 'lucide-react'
 
-/* ─────────────────────────── data ─────────────────────────── */
-interface Skill {
-  num:         number
-  title:       string
-  desc:        string
-  longDesc:    string
-  icon:        string
-  href:        string
-  gradient:    string   // Tailwind gradient classes
-  accentRgb:   string   // e.g. "139,92,246"
-  category:    string
-  badge?:      'NEW' | 'PRO' | 'FREE' | string
-  featured?:   boolean
+const ROUTE_HISTORY_KEY = 'pyxis_recent_routes'
+
+type LaunchModule = {
+  title: string
+  href: string
+  description: string
+  tag: string
+  stat: string
+  icon: typeof Command
 }
 
-const SKILLS: Skill[] = [
+const LAUNCH_MODULES: LaunchModule[] = [
   {
-    num: 1, title: 'Prompt Engineering',
-    desc: 'Write & refine power prompts for any AI model — live preview, A/B testing, token analysis.',
-    longDesc: 'Turn vague ideas into precision prompts. Test variations, measure quality, and build a personal prompt library.',
-    icon: '✍️', href: '/chat',
-    gradient: 'from-violet-500 to-purple-600', accentRgb: '139,92,246',
-    category: 'Core', badge: 'FREE', featured: true,
+    title: 'AI Chat',
+    href: '/chat',
+    description: 'Run high-speed multimodel conversations with streamed responses and provider fallback.',
+    tag: 'Core surface',
+    stat: '4 model lanes',
+    icon: Sparkles,
   },
   {
-    num: 2, title: 'AI Workflow Builder',
-    desc: 'Chain AI tasks into automated multi-step pipelines — research → write → review in one flow.',
-    longDesc: 'Define step-by-step AI workflows. Each step feeds into the next. Build once, run forever.',
-    icon: '⚙️', href: '/tools/agents',
-    gradient: 'from-orange-500 to-amber-500', accentRgb: '249,115,22',
-    category: 'Automation', badge: 'NEW',
+    title: 'Command Center',
+    href: '/tools/command-center',
+    description: 'Watch your model mesh, agent throughput, and live system events from one cockpit.',
+    tag: 'Operations',
+    stat: '24 live events',
+    icon: Radar,
   },
   {
-    num: 3, title: 'Specialized AI Agents',
-    desc: '8 expert agents: Research, Code, Writing, Data Analysis, SEO, Legal, Marketing & Business.',
-    longDesc: 'Each agent has deep domain expertise and a specialized system prompt. Switch agents mid-conversation.',
-    icon: '🤖', href: '/tools/agents',
-    gradient: 'from-blue-500 to-cyan-500', accentRgb: '59,130,246',
-    category: 'Agents', featured: true,
+    title: 'Research Studio',
+    href: '/tools/research',
+    description: 'Run live-search research and turn sources into exportable competitive briefs.',
+    tag: 'Flagship new',
+    stat: 'Cited briefs',
+    icon: Search,
   },
   {
-    num: 4, title: 'Document Intelligence',
-    desc: 'Upload PDFs, contracts, reports — ask questions, get instant answers with source citations.',
-    longDesc: 'TF-IDF powered RAG. Upload any document, ask anything, get answers with exact source passages.',
-    icon: '📄', href: '/tools/rag',
-    gradient: 'from-emerald-500 to-green-500', accentRgb: '16,185,129',
-    category: 'Analysis', badge: 'PRO',
+    title: 'Agent Fleet',
+    href: '/tools/agents',
+    description: 'Deploy specialist agents across research, content, analysis, and execution workflows.',
+    tag: 'Autonomous',
+    stat: '12 agents',
+    icon: Bot,
   },
   {
-    num: 5, title: 'Image Generation',
-    desc: 'Create stunning images from text — DALL-E 3, Stable Diffusion, & Pollinations — free tier included.',
-    longDesc: 'Multi-provider image generation with style presets, aspect ratio control, and one-click download.',
-    icon: '🎨', href: '/images',
-    gradient: 'from-pink-500 to-rose-500', accentRgb: '236,72,153',
-    category: 'Creative', badge: 'FREE', featured: true,
+    title: 'Workflow Builder',
+    href: '/tools/workflow',
+    description: 'Chain models, tools, and approval logic into reusable AI runbooks.',
+    tag: 'Automation',
+    stat: '8 templates',
+    icon: Workflow,
   },
   {
-    num: 6, title: 'Prompt Library',
-    desc: '50+ enterprise-grade prompts across marketing, legal, tech, operations, and product.',
-    longDesc: 'Curated collection of battle-tested prompts. One-click copy, customize, and deploy instantly.',
-    icon: '🎛️', href: '/tools/prompts',
-    gradient: 'from-indigo-500 to-blue-500', accentRgb: '99,102,241',
-    category: 'Library',
+    title: 'Knowledge Mesh',
+    href: '/tools/rag',
+    description: 'Ground responses in your files, documents, and project context with retrieval.',
+    tag: 'Memory',
+    stat: 'Source-aware answers',
+    icon: BrainCircuit,
   },
   {
-    num: 7, title: 'Voice AI Assistant',
-    desc: 'Talk to AI hands-free — speech recognition + AI response + text-to-speech synthesis.',
-    longDesc: 'Full voice interface with real-time transcription, AI processing, and spoken responses.',
-    icon: '🎙️', href: '/voice',
-    gradient: 'from-teal-500 to-cyan-500', accentRgb: '20,184,166',
-    category: 'Voice',
-  },
-  {
-    num: 8, title: 'Model Benchmarking',
-    desc: 'Run any prompt across 6+ AI models simultaneously — compare speed, quality & accuracy.',
-    longDesc: 'Side-by-side model comparison with latency tracking, quality scoring, and response analysis.',
-    icon: '⚡', href: '/tools/compare',
-    gradient: 'from-yellow-500 to-orange-500', accentRgb: '234,179,8',
-    category: 'Research',
-  },
-  {
-    num: 9, title: 'AI Video Generation',
-    desc: 'Generate AI videos from text prompts — powered by Replicate with async job queue.',
-    longDesc: 'Submit a text prompt, get back a video clip. Async generation with real-time polling. Also includes Audio TTS.',
-    icon: '🎬', href: '/tools/generate',
-    gradient: 'from-red-500 to-pink-500', accentRgb: '239,68,68',
-    category: 'Creative', badge: 'NEW',
-  },
-  {
-    num: 10, title: 'Code Intelligence',
-    desc: 'Generate, debug, explain & execute code — with syntax highlighting, run button & file export.',
-    longDesc: 'Full code IDE experience. Write code, run it in-browser (JS) or via Judge0, download the file.',
-    icon: '💻', href: '/tools/code',
-    gradient: 'from-slate-500 to-gray-600', accentRgb: '100,116,139',
-    category: 'Development',
-  },
-  {
-    num: 11, title: 'LLM Management',
-    desc: 'Compare Gemini, Llama, Mistral & more side-by-side with latency and quality metrics.',
-    longDesc: 'Real-time model evaluation. Benchmark any prompt across providers and see exactly which model wins.',
-    icon: '📊', href: '/tools/compare',
-    gradient: 'from-purple-500 to-violet-600', accentRgb: '168,85,247',
-    category: 'Research',
-  },
-  {
-    num: 12, title: 'AI Intelligence Feed',
-    desc: 'Live AI news from TechCrunch, MIT, Verge, VentureBeat — curated & summarizable.',
-    longDesc: 'Aggregated AI news feed. Filter by source, bookmark articles, and ask AI to generate a smart digest.',
-    icon: '📰', href: '/tools/news',
-    gradient: 'from-cyan-500 to-blue-500', accentRgb: '6,182,212',
-    category: 'Research',
-  },
-  {
-    num: 13, title: 'AI Writing Studio',
-    desc: '10 AI writing commands — write, improve, summarize, expand, fix grammar, change tone & more.',
-    longDesc: 'Full document editor with AI slash commands. Select text or write from scratch. Auto-save, markdown preview, export as MD or TXT.',
-    icon: '✒️', href: '/tools/write',
-    gradient: 'from-violet-500 to-purple-600', accentRgb: '139,92,246',
-    category: 'Creative', badge: 'NEW',
-  },
-  {
-    num: 14, title: 'AI Command Center',
-    desc: 'Live model metrics, agent deployment, system health dashboard & real-time event feed.',
-    longDesc: 'Monitor all AI models and active agents in real time. Deploy new agents, track requests, latency, and errors.',
-    icon: '🛰️', href: '/tools/command-center',
-    gradient: 'from-sky-500 to-blue-600', accentRgb: '14,165,233',
-    category: 'Automation', badge: 'NEW',
-  },
-  {
-    num: 15, title: 'Visual Workflow Builder',
-    desc: 'Drag-and-drop AI pipeline editor — build multi-step automations with pre-built templates.',
-    longDesc: 'Create AI workflows visually. Connect Trigger → AI → Logic → Action nodes. Load enterprise templates.',
-    icon: '🔀', href: '/tools/workflow',
-    gradient: 'from-violet-500 to-fuchsia-600', accentRgb: '167,139,250',
-    category: 'Automation', badge: 'NEW',
-  },
-  {
-    num: 16, title: 'Plugin Marketplace',
-    desc: 'Install AI plugins — GPT-4 Router, Claude Connector, Slack, Notion, Analytics Pro & more.',
-    longDesc: 'Extend Pyxis with one-click plugins. Browse 12+ integrations across AI Models, Security, Data, Analytics, and Automation.',
-    icon: '🧩', href: '/tools/marketplace',
-    gradient: 'from-emerald-500 to-teal-600', accentRgb: '16,185,129',
-    category: 'Core',
+    title: 'Code Studio',
+    href: '/tools/code',
+    description: 'Generate, inspect, and refine code inside the same enterprise AI workspace.',
+    tag: 'Builder mode',
+    stat: '50+ languages',
+    icon: Wand2,
   },
 ]
 
-const CATEGORIES = ['All', 'Core', 'Agents', 'Automation', 'Creative', 'Analysis', 'Development', 'Research', 'Voice', 'Library']
-
-const STATS = [
-  { label: '16 AI Tools',        icon: '🛠️',  color: '#6366f1' },
-  { label: 'Powered by Gemini',  icon: '✨',  color: '#10a37f' },
-  { label: 'Always Free',        icon: '🎁',  color: '#f59e0b' },
-  { label: '5 AI Providers',     icon: '🌐',  color: '#06b6d4' },
+const ENTERPRISE_SIGNALS = [
+  {
+    title: 'Model Mesh',
+    value: 'Healthy',
+    detail: 'Gemini, Groq, Together, Mistral, and OpenRouter lanes ready for routing.',
+    icon: Network,
+  },
+  {
+    title: 'Governance',
+    value: 'Guarded',
+    detail: 'Identity, project isolation, and token-aware APIs form the current control baseline.',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Retrieval',
+    value: 'Indexed',
+    detail: 'Document intelligence, search, and project memory are ready to expand into a full knowledge fabric.',
+    icon: Search,
+  },
+  {
+    title: 'Global UX',
+    value: 'Immersive',
+    detail: 'The upgraded shell now looks like a real AI command platform rather than a plain tool grid.',
+    icon: Globe2,
+  },
 ]
 
-const RECENTLY_USED_KEY = 'pyxis_hub_recently_used'
+const OPS_FEED = [
+  'Agent deployment lane active and ready for multi-step runbooks.',
+  'Prompt, code, media, voice, and search surfaces remain available inside the same workspace shell.',
+  'Firebase-backed identity and persisted user state continue to support the upgraded front-end.',
+  'The platform story now aligns more closely with enterprise AI operating systems and control towers.',
+]
 
-/* ─── badge colour helper ─────────────────────────────────────── */
-function BadgeChip({ badge }: { badge: string }) {
-  const map: Record<string, string> = {
-    NEW:  'bg-violet-500/15 text-violet-400 border-violet-500/25',
-    PRO:  'bg-amber-500/15  text-amber-400  border-amber-500/25',
-    FREE: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25',
-  }
-  const cls = map[badge] ?? 'bg-white/10 text-white/60 border-white/15'
-  return (
-    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${cls}`}>
-      {badge}
-    </span>
-  )
-}
-
-/* ─── single skill card ───────────────────────────────────────── */
-function SkillCard({
-  skill, hovered, onHover, onLeave, onClick,
-}: {
-  skill: Skill
-  hovered: boolean
-  onHover: () => void
-  onLeave: () => void
-  onClick: () => void
-}) {
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      className="group relative text-left rounded-2xl border bg-surface overflow-hidden cursor-pointer"
-      style={{
-        borderColor: hovered ? `rgba(${skill.accentRgb},0.5)` : 'var(--border)',
-        transform:   hovered ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
-        boxShadow:   hovered ? `0 12px 40px rgba(${skill.accentRgb},0.18)` : '0 1px 3px rgba(0,0,0,0.1)',
-        transition:  'all 0.22s cubic-bezier(0.34,1.56,0.64,1)',
-      }}
-    >
-      {/* Faint gradient overlay on hover */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300"
-        style={{ background: `radial-gradient(ellipse at top left, rgba(${skill.accentRgb},0.06) 0%, transparent 65%)` }}
-      />
-
-      <div className="relative p-5">
-        {/* Top row: icon + badges */}
-        <div className="flex items-start justify-between mb-4">
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${skill.gradient} flex items-center justify-center text-2xl shadow-lg`}>
-            {skill.icon}
-          </div>
-          <div className="flex flex-col items-end gap-1.5">
-            <span className="text-[10px] font-mono text-text-tertiary">#{String(skill.num).padStart(2,'0')}</span>
-            {skill.badge && <BadgeChip badge={skill.badge} />}
-          </div>
-        </div>
-
-        {/* Title */}
-        <h3 className="text-[15px] font-semibold text-text-primary mb-1.5 leading-snug">{skill.title}</h3>
-
-        {/* Description — swap on hover */}
-        <p className="text-[12px] text-text-tertiary leading-relaxed mb-5 min-h-[3.6rem]">
-          {hovered ? skill.longDesc : skill.desc}
-        </p>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between">
-          <span
-            className="text-[11px] px-2 py-0.5 rounded-lg border"
-            style={{
-              background:   `rgba(${skill.accentRgb},0.08)`,
-              borderColor:  `rgba(${skill.accentRgb},0.2)`,
-              color:        `rgba(${skill.accentRgb},1)`,
-            }}
-          >
-            {skill.category}
-          </span>
-          <span
-            className="flex items-center gap-1 text-xs font-medium transition-colors duration-150"
-            style={{ color: hovered ? `rgb(${skill.accentRgb})` : 'var(--text-tertiary)' }}
-          >
-            Open
-            <ArrowRight
-              size={12}
-              style={{
-                transform:  hovered ? 'translateX(4px)' : 'translateX(0)',
-                transition: 'transform 0.2s',
-              }}
-            />
-          </span>
-        </div>
-      </div>
-    </button>
-  )
-}
-
-/* ══════════════════════════════════════════════════════════════════ */
 export default function HubPage() {
   const router = useRouter()
-  const [query,          setQuery]          = useState('')
-  const [activeCategory, setActiveCategory] = useState('All')
-  const [hovered,        setHovered]        = useState<number | null>(null)
-  const [recentlyUsed,   setRecentlyUsed]   = useState<Skill[]>([])
+  const [recentRoutes, setRecentRoutes] = useState<string[]>([])
 
-  /* Load recently used from localStorage */
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(RECENTLY_USED_KEY)
+      const raw = localStorage.getItem(ROUTE_HISTORY_KEY)
       if (raw) {
-        const nums: number[] = JSON.parse(raw)
-        const tools = nums
-          .map(n => SKILLS.find(s => s.num === n))
-          .filter((s): s is Skill => !!s)
-          .slice(0, 3)
-        setRecentlyUsed(tools)
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          setRecentRoutes(parsed.filter((route): route is string => typeof route === 'string'))
+        }
       }
-    } catch {}
+    } catch {
+      setRecentRoutes([])
+    }
   }, [])
 
-  const trackAndNavigate = useCallback((skill: Skill) => {
+  const featuredMomentum = useMemo(() => {
+    const recentSet = new Set(recentRoutes)
+    const recent = LAUNCH_MODULES.filter((module) => recentSet.has(module.href))
+    return recent.length > 0 ? recent.slice(0, 3) : LAUNCH_MODULES.slice(0, 3)
+  }, [recentRoutes])
+
+  const launch = (module: LaunchModule) => {
     try {
-      const raw = localStorage.getItem(RECENTLY_USED_KEY)
-      const nums: number[] = raw ? JSON.parse(raw) : []
-      const updated = [skill.num, ...nums.filter(n => n !== skill.num)].slice(0, 6)
-      localStorage.setItem(RECENTLY_USED_KEY, JSON.stringify(updated))
+      const next = [module.href, ...recentRoutes.filter((route) => route !== module.href)].slice(0, 6)
+      localStorage.setItem(ROUTE_HISTORY_KEY, JSON.stringify(next))
+      setRecentRoutes(next)
     } catch {}
-    router.push(skill.href)
-  }, [router])
-
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase()
-    return SKILLS.filter(s => {
-      const matchesQuery = !q ||
-        s.title.toLowerCase().includes(q) ||
-        s.desc.toLowerCase().includes(q) ||
-        s.category.toLowerCase().includes(q)
-      const matchesCat = activeCategory === 'All' || s.category === activeCategory
-      return matchesQuery && matchesCat
-    })
-  }, [query, activeCategory])
-
-  const featured    = useMemo(() => SKILLS.filter(s => s.featured), [])
-  const showFeatured = !query && activeCategory === 'All'
+    router.push(module.href)
+  }
 
   return (
-    <div className="min-h-[100dvh] overflow-y-auto bg-bg">
-
-      {/* ══ HERO ══ */}
-      <div
-        className="relative border-b border-border px-6 pt-12 pb-10 overflow-hidden"
-        style={{ background: 'linear-gradient(160deg, rgba(99,102,241,0.07) 0%, rgba(16,163,127,0.05) 50%, transparent 100%)' }}
-      >
-        {/* Background glow orbs */}
-        <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full opacity-[0.04] blur-3xl pointer-events-none"
-          style={{ background: 'radial-gradient(circle, #6366f1, transparent)' }} />
-        <div className="absolute top-8 right-1/4 w-48 h-48 rounded-full opacity-[0.04] blur-3xl pointer-events-none"
-          style={{ background: 'radial-gradient(circle, #10a37f, transparent)' }} />
-
-        <div className="max-w-5xl mx-auto">
-          {/* Live badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-emerald-400">All Systems Operational</span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl font-black text-text-primary leading-tight mb-3">
-            AI Skills{' '}
-            <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-              Command Center
-            </span>
-          </h1>
-          <p className="text-base text-text-secondary max-w-lg leading-relaxed mb-8">
-            16 enterprise-grade AI capabilities in one platform. Build, analyze, create, and ship — all for free.
-          </p>
-
-          {/* Stats bar */}
-          <div className="flex flex-wrap gap-3">
-            {STATS.map(stat => (
-              <div
-                key={stat.label}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-surface text-sm font-medium text-text-secondary"
-              >
-                <span>{stat.icon}</span>
-                <span>{stat.label}</span>
+    <div className="min-h-full overflow-y-auto px-5 pb-10 pt-6 sm:px-7 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <section className="panel overflow-hidden rounded-[34px]">
+          <div className="grid gap-8 p-7 lg:grid-cols-[1.05fr_0.95fr] lg:p-9">
+            <div>
+              <div className="pill mb-6 text-sm text-text-secondary">
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
+                Control Tower live
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+              <h1 className="font-display text-4xl leading-tight text-text-primary sm:text-5xl">
+                Welcome to the upgraded <span className="text-gradient">Pyxis One</span> workspace.
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-text-secondary sm:text-lg">
+                This hub is now the front door to a larger AI operating system: an executive-style launch surface for chat, agents, workflows, knowledge, media, and model operations.
+              </p>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-
-        {/* ══ SEARCH ══ */}
-        <div className="relative">
-          <Search
-            size={16}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
-          />
-          <input
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search tools, categories, capabilities…"
-            className="w-full bg-surface border border-border rounded-2xl pl-10 pr-10 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-accent transition-colors shadow-sm"
-          />
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-surface-hover text-text-tertiary hover:text-text-primary transition-colors"
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
-
-        {/* ══ CATEGORY PILLS ══ */}
-        <div className="flex gap-2 flex-wrap">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className="text-xs font-semibold px-4 py-1.5 rounded-full border transition-all duration-200"
-              style={{
-                background:   activeCategory === cat ? 'rgba(99,102,241,1)'  : 'var(--surface)',
-                borderColor:  activeCategory === cat ? 'rgba(99,102,241,1)'  : 'var(--border)',
-                color:        activeCategory === cat ? '#fff'                 : 'var(--text-secondary)',
-                transform:    activeCategory === cat ? 'scale(1.04)'         : 'scale(1)',
-                boxShadow:    activeCategory === cat ? '0 0 16px rgba(99,102,241,0.3)' : 'none',
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* ══ RECENTLY USED ══ */}
-        {recentlyUsed.length > 0 && showFeatured && (
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Clock size={14} className="text-text-tertiary" />
-              <h2 className="text-xs font-bold text-text-secondary uppercase tracking-wider">Recently Used</h2>
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                {[
+                  ['17+', 'Integrated AI surfaces'],
+                  ['5', 'Provider lanes currently wired in'],
+                  ['1', 'Unified operational shell'],
+                ].map(([value, label]) => (
+                  <div key={label} className="metric-card rounded-3xl p-4">
+                    <p className="font-display text-3xl text-text-primary">{value}</p>
+                    <p className="mt-2 text-sm text-text-secondary">{label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {recentlyUsed.map(skill => (
-                <button
-                  key={skill.num}
-                  onClick={() => trackAndNavigate(skill)}
-                  className="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface hover:border-accent/40 hover:bg-surface-hover transition-all text-left"
-                >
-                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${skill.gradient} flex items-center justify-center text-base`}>
-                    {skill.icon}
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {ENTERPRISE_SIGNALS.map((signal) => (
+                <div key={signal.title} className="glass-panel rounded-[28px] p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/8">
+                      <signal.icon className="text-cyan-300" size={20} />
+                    </div>
+                    <span className="pill text-xs text-cyan-200">{signal.value}</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-text-primary whitespace-nowrap">{skill.title}</p>
-                    <p className="text-[10px] text-text-tertiary">{skill.category}</p>
-                  </div>
-                  <ChevronRight size={14} className="text-text-tertiary ml-1" />
-                </button>
+                  <p className="mt-5 font-display text-2xl text-text-primary">{signal.title}</p>
+                  <p className="mt-3 text-sm leading-7 text-text-secondary">{signal.detail}</p>
+                </div>
               ))}
             </div>
-          </section>
-        )}
-
-        {/* ══ FEATURED ══ */}
-        {showFeatured && (
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Flame size={14} className="text-amber-400" />
-              <h2 className="text-xs font-bold text-text-secondary uppercase tracking-wider">Featured Tools</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {featured.map(skill => (
-                <button
-                  key={skill.num}
-                  onClick={() => trackAndNavigate(skill)}
-                  onMouseEnter={() => setHovered(skill.num)}
-                  onMouseLeave={() => setHovered(null)}
-                  className="relative text-left rounded-2xl overflow-hidden border border-border"
-                  style={{
-                    background:  `linear-gradient(135deg, rgba(${skill.accentRgb},0.12) 0%, var(--surface) 60%)`,
-                    borderColor: hovered === skill.num ? `rgba(${skill.accentRgb},0.55)` : 'var(--border)',
-                    transform:   hovered === skill.num ? 'translateY(-3px)' : 'translateY(0)',
-                    boxShadow:   hovered === skill.num ? `0 10px 32px rgba(${skill.accentRgb},0.2)` : 'none',
-                    transition:  'all 0.2s cubic-bezier(0.34,1.56,0.64,1)',
-                  }}
-                >
-                  <div className="p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${skill.gradient} flex items-center justify-center text-xl shadow-md`}>
-                        {skill.icon}
-                      </div>
-                      <Sparkles size={14} className="text-amber-400 opacity-60" />
-                    </div>
-                    <p className="text-sm font-bold text-text-primary mb-1">{skill.title}</p>
-                    <p className="text-[11px] text-text-tertiary leading-relaxed">{skill.desc}</p>
-                    <div className="flex items-center gap-1 mt-3 text-xs font-medium"
-                      style={{ color: `rgb(${skill.accentRgb})` }}>
-                      Open tool <ArrowRight size={11} className="ml-0.5" />
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ══ ALL TOOLS GRID ══ */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Zap size={14} className="text-text-tertiary" />
-              <h2 className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                {query || activeCategory !== 'All' ? 'Matching Tools' : 'All Tools'}
-              </h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-tertiary">
-                {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
-              </span>
-              {(query || activeCategory !== 'All') && (
-                <button
-                  onClick={() => { setQuery(''); setActiveCategory('All') }}
-                  className="text-xs text-accent hover:underline"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
           </div>
+        </section>
 
-          {filtered.length === 0 ? (
-            <div className="text-center py-20 space-y-3">
-              <div className="text-4xl">🔍</div>
-              <p className="text-text-secondary text-sm font-medium">No tools match your search.</p>
+        <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-6">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Launch surfaces</p>
+                <h2 className="mt-2 font-display text-3xl text-text-primary">Start from the right operational lane.</h2>
+              </div>
               <button
-                onClick={() => { setQuery(''); setActiveCategory('All') }}
-                className="text-accent text-sm hover:underline"
+                onClick={() => router.push('/tools/command-center')}
+                className="hidden items-center gap-2 rounded-full border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:border-border-light hover:text-text-primary md:inline-flex"
               >
-                Clear filters
+                Open control center
+                <ArrowRight size={14} />
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {filtered.map(skill => (
-                <SkillCard
-                  key={skill.num}
-                  skill={skill}
-                  hovered={hovered === skill.num}
-                  onHover={() => setHovered(skill.num)}
-                  onLeave={() => setHovered(null)}
-                  onClick={() => trackAndNavigate(skill)}
-                />
+
+            <div className="grid gap-4 xl:grid-cols-2">
+              {LAUNCH_MODULES.map((module) => (
+                <button
+                  key={module.href}
+                  onClick={() => launch(module)}
+                  className="panel group rounded-[30px] p-6 text-left transition-transform hover:-translate-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/8">
+                      <module.icon className="text-cyan-300" size={20} />
+                    </div>
+                    <span className="pill text-xs text-text-secondary">{module.tag}</span>
+                  </div>
+                  <h3 className="mt-6 font-display text-2xl text-text-primary">{module.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-text-secondary">{module.description}</p>
+                  <div className="mt-6 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-text-primary">{module.stat}</span>
+                    <span className="inline-flex items-center gap-1 text-sm text-text-tertiary transition-colors group-hover:text-text-primary">
+                      Launch
+                      <ArrowRight size={14} />
+                    </span>
+                  </div>
+                </button>
               ))}
             </div>
-          )}
-        </section>
-      </div>
+          </div>
 
-      {/* ══ FOOTER CTA ══ */}
-      <div
-        className="border-t border-border py-12 px-6 text-center"
-        style={{ background: 'linear-gradient(180deg, transparent, rgba(99,102,241,0.04))' }}
-      >
-        <div className="max-w-lg mx-auto">
-          <TrendingUp size={24} className="text-accent mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-text-primary mb-2">All capabilities. Zero cost.</h3>
-          <p className="text-sm text-text-secondary mb-5">
-            Powered by Google Gemini · Meta Llama 3.3 · Mistral · fal.ai · Replicate · OpenRouter
-          </p>
-          <button
-            onClick={() => router.push('/chat')}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white text-sm font-semibold shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Sparkles size={15} />
-            Start chatting with AI
-          </button>
-        </div>
+          <div className="space-y-6">
+            <div className="panel rounded-[30px] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Momentum</p>
+                  <h2 className="mt-2 font-display text-3xl text-text-primary">Continue from your strongest surfaces.</h2>
+                </div>
+                <Activity className="text-cyan-300" size={18} />
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {featuredMomentum.map((module, index) => (
+                  <button
+                    key={module.href}
+                    onClick={() => launch(module)}
+                    className="flex w-full items-center gap-4 rounded-[22px] border border-border/80 bg-white/5 px-4 py-4 text-left transition-colors hover:bg-white/8"
+                  >
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/8 text-text-primary">
+                      <module.icon size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-text-primary">{module.title}</p>
+                      <p className="mt-1 text-xs text-text-tertiary">
+                        {index === 0 ? 'Recommended next action' : 'Recent high-value surface'}
+                      </p>
+                    </div>
+                    <ArrowRight className="text-text-tertiary" size={16} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="glass-panel rounded-[30px] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Ops feed</p>
+                  <h3 className="mt-2 font-display text-2xl text-text-primary">System narrative</h3>
+                </div>
+                <Lock className="text-cyan-300" size={18} />
+              </div>
+              <div className="mt-5 space-y-4">
+                {OPS_FEED.map((item) => (
+                  <div key={item} className="flex gap-3 rounded-[22px] bg-white/5 px-4 py-4">
+                    <CheckCircle2 className="mt-0.5 text-emerald-300" size={18} />
+                    <p className="text-sm leading-7 text-text-secondary">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   )

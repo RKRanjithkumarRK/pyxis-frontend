@@ -1,51 +1,95 @@
 'use client'
 
-import { Search, X, Globe, Rss, Bot, FileText, BarChart2, Code2, Wand2, LayoutGrid, Sparkles, Image, Mic, MessageSquare, PenLine, Terminal, Workflow, Package, Gamepad2 } from 'lucide-react'
-import { useSidebar } from '@/contexts/SidebarContext'
-import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import {
+  BarChart2,
+  Bot,
+  Code2,
+  Gamepad2,
+  Globe,
+  Image,
+  LayoutGrid,
+  MessageSquare,
+  Mic,
+  Package,
+  PenLine,
+  Radar,
+  Rss,
+  Search,
+  Sparkles,
+  Terminal,
+  Wand2,
+  Workflow,
+  X,
+} from 'lucide-react'
+import { useSidebar } from '@/contexts/SidebarContext'
 
-const TOOLS = [
-  { href: '/hub',            icon: LayoutGrid,    label: 'Skills Hub',     color: 'text-indigo-400',  badge: '16 Skills' },
-  { href: '/chat',           icon: MessageSquare, label: 'AI Chat',        color: 'text-accent',      badge: null },
-  { href: '/tools/agents',   icon: Bot,           label: 'AI Agents',      color: 'text-orange-400',  badge: '12 Agents' },
-  { href: '/tools/compare',  icon: BarChart2,     label: 'LLM Benchmark',  color: 'text-yellow-400',  badge: '6 Models' },
-  { href: '/tools/code',     icon: Code2,         label: 'Code Studio',    color: 'text-green-400',   badge: '7 Modes' },
-  { href: '/tools/prompts',  icon: Wand2,         label: 'Prompt Library', color: 'text-violet-400',  badge: '30+' },
-  { href: '/tools/rag',      icon: FileText,      label: 'Document Q&A',   color: 'text-emerald-400', badge: null },
-  { href: '/tools/write',    icon: PenLine,       label: 'Writing Studio', color: 'text-violet-400',  badge: 'New' },
-  { href: '/images',         icon: Image,         label: 'Image Studio',   color: 'text-pink-400',    badge: null },
-  { href: '/tools/generate', icon: Sparkles,      label: 'AI Video',       color: 'text-red-400',     badge: null },
-  { href: '/tools/search',   icon: Globe,         label: 'Web Search',     color: 'text-blue-400',    badge: null },
-  { href: '/tools/news',     icon: Rss,           label: 'AI News',        color: 'text-cyan-400',    badge: null },
-  { href: '/voice',          icon: Mic,           label: 'Voice AI',       color: 'text-teal-400',    badge: null },
-  { href: '/tools/command-center', icon: Terminal,  label: 'Command Center', color: 'text-sky-400',     badge: 'New' },
-  { href: '/tools/workflow', icon: Workflow,      label: 'Workflow Builder',color: 'text-fuchsia-400', badge: 'New' },
-  { href: '/tools/marketplace',    icon: Package,   label: 'Marketplace',    color: 'text-emerald-400', badge: '12 Plugins' },
-  { href: '/tools/snake',    icon: Gamepad2,  label: 'Snake',          color: 'text-lime-400',    badge: null },
+type NavItem = {
+  href: string
+  icon: typeof LayoutGrid
+  label: string
+  badge?: string
+}
+
+const GROUPS: { label: string; items: NavItem[] }[] = [
+  {
+    label: 'Control',
+    items: [
+      { href: '/hub', icon: LayoutGrid, label: 'Workspace Home' },
+      { href: '/chat', icon: MessageSquare, label: 'AI Chat' },
+      { href: '/tools/command-center', icon: Terminal, label: 'Command Center', badge: 'Live' },
+      { href: '/tools/workflow', icon: Workflow, label: 'Workflow Builder', badge: 'New' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [
+      { href: '/tools/agents', icon: Bot, label: 'Agent Fleet', badge: '12' },
+      { href: '/tools/research', icon: Radar, label: 'Research Studio', badge: 'New' },
+      { href: '/tools/rag', icon: Wand2, label: 'Knowledge Mesh' },
+      { href: '/tools/search', icon: Globe, label: 'Web Search' },
+      { href: '/tools/news', icon: Rss, label: 'AI News' },
+      { href: '/tools/compare', icon: BarChart2, label: 'Model Compare' },
+    ],
+  },
+  {
+    label: 'Studios',
+    items: [
+      { href: '/tools/code', icon: Code2, label: 'Code Studio' },
+      { href: '/tools/write', icon: PenLine, label: 'Writing Studio' },
+      { href: '/images', icon: Image, label: 'Image Studio' },
+      { href: '/voice', icon: Mic, label: 'Voice AI' },
+      { href: '/tools/marketplace', icon: Package, label: 'Marketplace' },
+      { href: '/tools/snake', icon: Gamepad2, label: 'Snake' },
+    ],
+  },
 ]
 
 export default function NavLinks() {
   const { searchQuery, setSearchQuery } = useSidebar()
   const [showSearch, setShowSearch] = useState(false)
-  const router   = useRouter()
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
-    <div className="px-2 py-1 space-y-0.5">
+    <div className="space-y-4 px-1">
       {showSearch ? (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-hover">
-          <Search size={15} className="text-text-tertiary shrink-0" />
+        <div className="flex items-center gap-2 rounded-[18px] border border-border/80 bg-white/5 px-3 py-3">
+          <Search size={15} className="shrink-0 text-text-tertiary" />
           <input
             autoFocus
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search chats..."
-            className="flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-tertiary"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search chats and workspaces"
+            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-tertiary"
           />
           <button
-            onClick={() => { setShowSearch(false); setSearchQuery('') }}
-            className="text-text-tertiary hover:text-text-primary transition-colors"
+            onClick={() => {
+              setShowSearch(false)
+              setSearchQuery('')
+            }}
+            className="text-text-tertiary transition-colors hover:text-text-primary"
           >
             <X size={14} />
           </button>
@@ -53,42 +97,42 @@ export default function NavLinks() {
       ) : (
         <button
           onClick={() => setShowSearch(true)}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
+          className="flex w-full items-center gap-3 rounded-[18px] border border-border/80 bg-white/5 px-3 py-3 text-sm text-text-secondary transition-colors hover:border-border-light hover:text-text-primary"
         >
-          <Search size={16} />
-          <span>Search chats</span>
+          <Search size={15} />
+          Search conversations
         </button>
       )}
 
-      <div className="pt-2 pb-1">
-        <p className="px-3 text-[10px] font-semibold uppercase tracking-widest text-text-tertiary opacity-60">
-          Enterprise AI Tools
-        </p>
-      </div>
-
-      {TOOLS.map(tool => {
-        const Icon   = tool.icon
-        const active = pathname === tool.href || (tool.href !== '/chat' && tool.href.length > 1 && pathname.startsWith(tool.href))
-        return (
-          <button
-            key={tool.href}
-            onClick={() => router.push(tool.href)}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-              active
-                ? 'bg-surface-hover text-text-primary'
-                : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
-            }`}
-          >
-            <Icon size={16} className={active ? tool.color : undefined} />
-            <span className="flex-1 text-left">{tool.label}</span>
-            {tool.badge && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: 'rgba(16,163,127,0.1)', color: '#10a37f' }}>
-                {tool.badge}
-              </span>
-            )}
-          </button>
-        )
-      })}
+      {GROUPS.map((group) => (
+        <div key={group.label}>
+          <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.28em] text-text-tertiary">{group.label}</p>
+          <div className="space-y-1.5">
+            {group.items.map((item) => {
+              const active = pathname === item.href || (item.href !== '/chat' && item.href.length > 1 && pathname.startsWith(item.href))
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => router.push(item.href)}
+                  className={`flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm transition-all ${
+                    active
+                      ? 'bg-white text-slate-950 shadow-[0_14px_40px_rgba(255,255,255,0.12)]'
+                      : 'text-text-secondary hover:bg-white/8 hover:text-text-primary'
+                  }`}
+                >
+                  <item.icon size={16} className={active ? 'text-slate-950' : 'text-cyan-300'} />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.badge && (
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${active ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-cyan-200'}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

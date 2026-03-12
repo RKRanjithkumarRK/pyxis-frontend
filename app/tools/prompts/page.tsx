@@ -3,7 +3,16 @@
 import { useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Wand2, Copy, Check, Send, Loader2, Search, Star, ArrowLeft, Zap } from 'lucide-react'
+import {
+  Wand2, Copy, Check, Send, Loader2, Search, Star, ArrowLeft, Zap,
+  TrendingUp, Clock, BookMarked, ChevronRight,
+  Layers, Code2, BarChart2, PenTool, Users, Scale, Briefcase, Target,
+  Sparkles, Hash
+} from 'lucide-react'
+
+// Polyfill AlphabeticalOrder if not available — lucide may not have it
+// We'll use a substitute
+import { CaseSensitive } from 'lucide-react'
 
 interface Template {
   title: string
@@ -11,13 +20,47 @@ interface Template {
   emoji: string
   prompt: string
   tags?: string[]
+  usageCount?: number
 }
 
 interface Category {
   name: string
   emoji: string
   color: string
+  icon: React.ElementType
   templates: Template[]
+}
+
+/* ─── Simulated usage counts ─────────────────────────── */
+const USAGE_MAP: Record<string, string> = {
+  'Role + Task + Format': '8.2K',
+  'Chain of Thought': '6.7K',
+  'Few-Shot Learning': '5.1K',
+  'Critique & Improve': '4.3K',
+  'Persona Roleplay': '3.9K',
+  'Cold Email Generator': '7.4K',
+  'Product Description': '5.8K',
+  'Social Media Posts': '9.1K',
+  'Brand Positioning Statement': '3.2K',
+  'Content Marketing Calendar': '4.8K',
+  'Customer Persona': '4.1K',
+  'System Prompt Designer': '6.3K',
+  'Code Review Checklist': '5.5K',
+  'Technical Interview Prep': '7.0K',
+  'Architecture Decision Record': '2.8K',
+  'Blog Post Creator': '6.9K',
+  'YouTube Script': '5.4K',
+  'Email Newsletter': '4.7K',
+  'LinkedIn Thought Leadership': '5.2K',
+  'Data Analysis Request': '3.6K',
+  'SQL Query Builder': '4.9K',
+  'SWOT Analysis': '4.4K',
+  'OKR Framework': '3.8K',
+  'Competitive Analysis': '4.0K',
+  'Job Description Writer': '3.5K',
+  'Performance Review': '2.9K',
+  'Business Plan Executive Summary': '3.1K',
+  'Contract Plain Language Summary': '2.4K',
 }
 
 const CATEGORIES: Category[] = [
@@ -25,11 +68,12 @@ const CATEGORIES: Category[] = [
     name: 'Prompt Engineering',
     emoji: '✍️',
     color: 'from-violet-500 to-purple-600',
+    icon: Wand2,
     templates: [
       {
         title: 'Role + Task + Format', emoji: '🎯',
         desc: 'The gold-standard prompt structure for maximum AI output quality',
-        tags: ['structure', 'foundation'],
+        tags: ['structure', 'foundation', 'basics'],
         prompt: `You are a [ROLE] with expertise in [DOMAIN].
 
 Your task: [CLEAR TASK DESCRIPTION]
@@ -48,7 +92,7 @@ Additional context: [Any background info the AI needs]`,
       {
         title: 'Chain of Thought', emoji: '🧠',
         desc: 'Force step-by-step reasoning before giving final answer',
-        tags: ['reasoning', 'analysis'],
+        tags: ['reasoning', 'analysis', 'logic'],
         prompt: `Think through this problem step by step before giving your final answer.
 
 Problem: [YOUR PROBLEM HERE]
@@ -65,7 +109,7 @@ Show your full reasoning for each step. Do not skip steps.`,
       {
         title: 'Few-Shot Learning', emoji: '📚',
         desc: 'Teach the model exactly what you want through examples',
-        tags: ['examples', 'pattern'],
+        tags: ['examples', 'pattern', 'training'],
         prompt: `Transform the input using the exact pattern shown in these examples:
 
 Input: [EXAMPLE INPUT 1]
@@ -84,7 +128,7 @@ Output:`,
       {
         title: 'Critique & Improve', emoji: '🔄',
         desc: 'Make AI review and improve its own output iteratively',
-        tags: ['iteration', 'quality'],
+        tags: ['iteration', 'quality', 'refinement'],
         prompt: `First, complete this task: [TASK]
 
 Then, critique your own output by asking:
@@ -97,7 +141,7 @@ Finally, produce an improved version that addresses your critique. Label it "IMP
       {
         title: 'Persona Roleplay', emoji: '🎭',
         desc: 'Get expert-level responses by assigning a specific expert persona',
-        tags: ['persona', 'expert'],
+        tags: ['persona', 'expert', 'roleplay'],
         prompt: `You are [EXPERT NAME], a world-renowned expert in [FIELD] with [X years] of experience. You've worked with [famous companies/people] and are known for [unique approach/philosophy].
 
 Speaking as [EXPERT NAME] would, help me with: [YOUR QUESTION/TASK]
@@ -114,6 +158,7 @@ Include:
     name: 'Business & Marketing',
     emoji: '📊',
     color: 'from-amber-500 to-orange-500',
+    icon: Briefcase,
     templates: [
       {
         title: 'Cold Email Generator', emoji: '📧',
@@ -242,6 +287,7 @@ Build a complete persona including:
     name: 'AI & Development',
     emoji: '🤖',
     color: 'from-cyan-500 to-blue-600',
+    icon: Code2,
     templates: [
       {
         title: 'System Prompt Designer', emoji: '⚙️',
@@ -351,6 +397,7 @@ ADR Format:
     name: 'Content & Writing',
     emoji: '✍️',
     color: 'from-pink-500 to-rose-500',
+    icon: PenTool,
     templates: [
       {
         title: 'Blog Post Creator', emoji: '📝',
@@ -446,6 +493,7 @@ Write 2 versions: one personal story, one data-driven`,
     name: 'Data & Analysis',
     emoji: '📈',
     color: 'from-teal-500 to-emerald-500',
+    icon: BarChart2,
     templates: [
       {
         title: 'Data Analysis Request', emoji: '📊',
@@ -502,6 +550,7 @@ Please also:
     name: 'Strategy & Planning',
     emoji: '♟️',
     color: 'from-indigo-500 to-blue-500',
+    icon: Target,
     templates: [
       {
         title: 'SWOT Analysis', emoji: '🔍',
@@ -589,6 +638,7 @@ Conclude with:
     name: 'HR & Management',
     emoji: '👥',
     color: 'from-orange-500 to-amber-500',
+    icon: Users,
     templates: [
       {
         title: 'Job Description Writer', emoji: '📋',
@@ -645,6 +695,7 @@ Write:
     name: 'Finance & Legal',
     emoji: '⚖️',
     color: 'from-slate-500 to-gray-600',
+    icon: Scale,
     templates: [
       {
         title: 'Business Plan Executive Summary', emoji: '📄',
@@ -700,7 +751,36 @@ Provide:
   },
 ]
 
-const ALL_TEMPLATES = CATEGORIES.flatMap(c => c.templates.map(t => ({ ...t, category: c.name, categoryEmoji: c.emoji, color: c.color })))
+const ALL_TEMPLATES = CATEGORIES.flatMap(c =>
+  c.templates.map(t => ({ ...t, category: c.name, categoryEmoji: c.emoji, color: c.color }))
+)
+
+/* Featured prompts — top 3 */
+const FEATURED = [
+  ALL_TEMPLATES.find(t => t.title === 'Social Media Posts')!,
+  ALL_TEMPLATES.find(t => t.title === 'Cold Email Generator')!,
+  ALL_TEMPLATES.find(t => t.title === 'Role + Task + Format')!,
+]
+
+/* Highlight [VARIABLES] in prompt text */
+function highlightVariables(text: string): React.ReactNode[] {
+  const parts = text.split(/(\[[^\]]+\])/g)
+  return parts.map((part, i) => {
+    if (/^\[[^\]]+\]$/.test(part)) {
+      return (
+        <mark key={i} style={{
+          background: 'rgba(251,191,36,0.18)',
+          color: '#fbbf24',
+          borderRadius: 3,
+          padding: '0 2px',
+        }}>{part}</mark>
+      )
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
+type SortOption = 'popular' | 'newest' | 'alpha' | 'favorites'
 
 export default function PromptsPage() {
   const [query, setQuery] = useState('')
@@ -711,14 +791,34 @@ export default function PromptsPage() {
   const [streaming, setStreaming] = useState(false)
   const [copied, setCopied] = useState<'prompt' | 'output' | null>(null)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+  const [sortBy, setSortBy] = useState<SortOption>('popular')
+
+  const totalCount = ALL_TEMPLATES.length
 
   const filteredTemplates = useMemo(() => {
-    return ALL_TEMPLATES.filter(t => {
-      const matchesSearch = !query || t.title.toLowerCase().includes(query.toLowerCase()) || t.desc.toLowerCase().includes(query.toLowerCase()) || (t.tags?.some(tag => tag.includes(query.toLowerCase())))
+    let results = ALL_TEMPLATES.filter(t => {
+      const q = query.toLowerCase()
+      const matchesSearch = !query ||
+        t.title.toLowerCase().includes(q) ||
+        t.desc.toLowerCase().includes(q) ||
+        (t.tags?.some(tag => tag.toLowerCase().includes(q))) ||
+        t.prompt.toLowerCase().includes(q)
       const matchesCat = activeCategory === 'All' || t.category === activeCategory
       return matchesSearch && matchesCat
     })
-  }, [query, activeCategory])
+
+    if (sortBy === 'favorites') {
+      results = results.filter(t => favorites.has(t.title))
+    } else if (sortBy === 'alpha') {
+      results = [...results].sort((a, b) => a.title.localeCompare(b.title))
+    } else if (sortBy === 'popular') {
+      const parseCount = (s: string) => parseFloat(s?.replace('K', '') || '0') * (s?.includes('K') ? 1000 : 1)
+      results = [...results].sort((a, b) => parseCount(USAGE_MAP[b.title] || '0') - parseCount(USAGE_MAP[a.title] || '0'))
+    }
+    // 'newest' keeps insertion order
+
+    return results
+  }, [query, activeCategory, sortBy, favorites])
 
   const select = (template: Template & { category: string; color: string }) => {
     setSelected(template)
@@ -761,199 +861,332 @@ export default function PromptsPage() {
       })
       clearTimeout(timer)
       const data = await res.json()
-      setOutput(data.content || data.error || '⚠️ Empty response from AI.')
+      setOutput(data.content || data.error || 'Empty response from AI.')
     } catch (e: any) {
       clearTimeout(timer)
-      setOutput(e.name === 'AbortError' ? '⏱ Timed out after 45s.' : '⚠️ Error connecting to AI.')
+      setOutput(e.name === 'AbortError' ? 'Timed out after 45s.' : 'Error connecting to AI.')
     } finally {
       setStreaming(false)
     }
   }
 
-  const totalCount = ALL_TEMPLATES.length
-
   return (
     <div className="h-full flex flex-col bg-bg text-text-primary">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-border shrink-0">
+      {/* ── Header ── */}
+      <div className="px-5 py-4 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-lg flex items-center justify-center">
-            <Wand2 size={16} className="text-white" />
+          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <Wand2 size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="font-semibold text-text-primary text-sm">Enterprise Prompt Library</h1>
-            <p className="text-xs text-text-tertiary">{totalCount} battle-tested templates across 8 categories</p>
+            <h1 className="font-bold text-base text-text-primary tracking-tight">Prompt Library</h1>
+            <p className="text-xs text-text-tertiary">{totalCount}+ enterprise-grade templates · 8 categories</p>
           </div>
-          <span className="ml-auto text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
-            {totalCount} Prompts
-          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
+              {totalCount} Prompts
+            </span>
+            {favorites.size > 0 && (
+              <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-medium">
+                {favorites.size} Saved
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden flex">
         {!selected ? (
-          /* ── Template Browser ── */
-          <div className="max-w-5xl mx-auto px-4 py-5">
-            {/* Search */}
-            <div className="relative mb-4">
-              <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-              <input
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Search prompts by name, description, or tag…"
-                className="w-full bg-surface border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none"
-              />
-            </div>
+          /* ── Browser view — sidebar + grid ── */
+          <div className="flex flex-1 overflow-hidden">
 
-            {/* Category filter */}
-            <div className="flex gap-2 flex-wrap mb-5">
-              {['All', ...CATEGORIES.map(c => c.name)].map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className="text-xs px-3 py-1.5 rounded-full border transition-all"
-                  style={{
-                    background: activeCategory === cat ? '#10a37f' : 'var(--surface)',
-                    borderColor: activeCategory === cat ? '#10a37f' : 'var(--border)',
-                    color: activeCategory === cat ? '#fff' : 'var(--text-secondary)',
-                  }}
-                >
-                  {cat === 'All' ? `All (${totalCount})` : cat}
-                </button>
-              ))}
-            </div>
+            {/* Category sidebar */}
+            <div className="w-52 flex-shrink-0 border-r border-border flex flex-col bg-bg overflow-y-auto py-3 px-2 gap-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-text-tertiary px-2 pb-2">Categories</p>
 
-            {/* Results count */}
-            <p className="text-xs text-text-tertiary mb-4">
-              Showing {filteredTemplates.length} of {totalCount} prompts
-              {query && ` for "${query}"`}
-            </p>
+              {/* All option */}
+              <button
+                onClick={() => setActiveCategory('All')}
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all ${
+                  activeCategory === 'All'
+                    ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                    : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-transparent'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="flex-1 font-medium">All Prompts</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface border border-border font-semibold">{totalCount}</span>
+              </button>
 
-            {/* Templates by category or search results */}
-            {query || activeCategory !== 'All' ? (
-              /* Flat search results */
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredTemplates.map(t => (
-                  <TemplateCard key={`${t.category}-${t.title}`} template={t} onSelect={select} favorites={favorites} onToggleFavorite={toggleFavorite} />
-                ))}
-                {filteredTemplates.length === 0 && (
-                  <div className="col-span-3 text-center py-12 text-text-tertiary">
-                    <p className="text-4xl mb-3">🔍</p>
-                    <p>No prompts found. Try a different search.</p>
-                  </div>
+              {/* Favorites option */}
+              <button
+                onClick={() => { setActiveCategory('All'); setSortBy('favorites') }}
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all ${
+                  sortBy === 'favorites'
+                    ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                    : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-transparent'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="flex-1 font-medium">Favorites</span>
+                {favorites.size > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-semibold">{favorites.size}</span>
                 )}
-              </div>
-            ) : (
-              /* Grouped by category */
-              CATEGORIES.map(cat => (
-                <div key={cat.name} className="mb-8">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{cat.emoji}</span>
-                    <h2 className="text-text-primary font-semibold text-sm">{cat.name}</h2>
-                    <span className="text-xs text-text-tertiary">({cat.templates.length} prompts)</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {cat.templates.map(t => (
-                      <TemplateCard
-                        key={t.title}
-                        template={{ ...t, category: cat.name, categoryEmoji: cat.emoji, color: cat.color }}
-                        onSelect={select}
-                        favorites={favorites}
-                        onToggleFavorite={toggleFavorite}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          /* ── Template Editor ── */
-          <div className="max-w-5xl mx-auto px-4 py-5">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setSelected(null)}
-                  className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors"
-                >
-                  <ArrowLeft size={13} />
-                  Back
-                </button>
-                <div>
-                  <h2 className="text-text-primary font-semibold text-sm">{selected.emoji} {selected.title}</h2>
-                  <p className="text-xs text-text-tertiary">{selected.category}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => copy(customized, 'prompt')}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-surface-hover rounded-lg text-xs text-text-secondary hover:text-text-primary transition-all"
-                >
-                  {copied === 'prompt' ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-                  {copied === 'prompt' ? 'Copied!' : 'Copy Prompt'}
-                </button>
-                <button
-                  onClick={test}
-                  disabled={streaming}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs text-white font-medium transition-all disabled:opacity-50"
-                  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
-                >
-                  {streaming ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
-                  {streaming ? 'Testing…' : 'Test Prompt'}
-                </button>
-              </div>
+              </button>
+
+              <div className="h-px bg-border mx-1 my-1" />
+
+              {CATEGORIES.map(cat => {
+                const isActive = activeCategory === cat.name && sortBy !== 'favorites'
+                return (
+                  <button
+                    key={cat.name}
+                    onClick={() => { setActiveCategory(cat.name); if (sortBy === 'favorites') setSortBy('popular') }}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all ${
+                      isActive
+                        ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                        : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-transparent'
+                    }`}
+                  >
+                    <span className="text-base leading-none flex-shrink-0">{cat.emoji}</span>
+                    <span className="flex-1 text-left font-medium leading-snug">{cat.name}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface border border-border font-semibold text-text-tertiary">
+                      {cat.templates.length}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Editor */}
-              <div>
-                <p className="text-xs text-text-tertiary uppercase tracking-wider mb-2 font-medium">✏️ Customize & Fill In Brackets</p>
-                <textarea
-                  value={customized}
-                  onChange={e => setCustomized(e.target.value)}
-                  rows={22}
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary outline-none resize-none transition-all font-mono leading-relaxed"
-                />
-                <p className="text-xs text-text-tertiary mt-2">
-                  Replace all <code className="bg-surface-hover px-1 rounded">[BRACKETS]</code> with your actual content, then click Test Prompt
+            {/* Main area — search + featured + grid */}
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+              {/* Search + sort row */}
+              <div className="flex gap-3 mb-5">
+                <div className="relative flex-1">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={e => { setQuery(e.target.value); if (sortBy === 'favorites') setSortBy('popular') }}
+                    placeholder="Search by name, description, tags, or prompt content…"
+                    className="w-full bg-surface border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-indigo-500/50 transition-all"
+                  />
+                </div>
+                {/* Sort */}
+                <div className="flex items-center gap-1 bg-surface border border-border rounded-xl px-1 py-1">
+                  {([
+                    { key: 'popular', icon: TrendingUp, label: 'Popular' },
+                    { key: 'newest', icon: Clock, label: 'Newest' },
+                    { key: 'alpha', icon: CaseSensitive, label: 'A–Z' },
+                  ] as const).map(s => (
+                    <button key={s.key} onClick={() => setSortBy(s.key as SortOption)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        sortBy === s.key
+                          ? 'bg-indigo-500/15 text-indigo-400'
+                          : 'text-text-tertiary hover:text-text-secondary'
+                      }`}>
+                      <s.icon className="w-3 h-3" />
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Featured section — only when not filtering */}
+              {!query && activeCategory === 'All' && sortBy !== 'favorites' && (
+                <div className="mb-7">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                    <h2 className="text-xs font-bold text-text-primary uppercase tracking-widest">Most Popular</h2>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {FEATURED.map((t, idx) => {
+                      const gradients = [
+                        'from-violet-600/20 to-purple-600/10 border-violet-500/25',
+                        'from-amber-500/20 to-orange-500/10 border-amber-500/25',
+                        'from-cyan-500/20 to-blue-600/10 border-cyan-500/25',
+                      ]
+                      return (
+                        <div key={t.title}
+                          onClick={() => select(t)}
+                          className={`relative p-4 rounded-2xl border cursor-pointer transition-all hover:scale-[1.01] bg-gradient-to-br ${gradients[idx]} group`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <span className="text-2xl">{t.emoji}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/20 text-white/70 font-medium">
+                              {USAGE_MAP[t.title]} uses
+                            </span>
+                          </div>
+                          <h3 className="text-sm font-bold text-text-primary mb-1 leading-snug">{t.title}</h3>
+                          <p className="text-xs text-text-tertiary leading-relaxed line-clamp-2 mb-3">{t.desc}</p>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-text-tertiary">{t.category}</span>
+                            <ChevronRight className="w-3 h-3 text-text-tertiary ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Results count */}
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-text-tertiary">
+                  {filteredTemplates.length === totalCount
+                    ? `All ${totalCount} prompts`
+                    : `${filteredTemplates.length} of ${totalCount} prompts`}
+                  {query && ` matching "${query}"`}
                 </p>
               </div>
 
-              {/* Output */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-text-tertiary uppercase tracking-wider font-medium">🤖 AI Response</p>
-                  {output && (
-                    <button onClick={() => copy(output, 'output')} className="flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary">
-                      {copied === 'output' ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
-                      {copied === 'output' ? 'Copied' : 'Copy'}
-                    </button>
-                  )}
+              {/* Template grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredTemplates.map(t => (
+                  <TemplateCard
+                    key={`${t.category}-${t.title}`}
+                    template={t}
+                    onSelect={select}
+                    favorites={favorites}
+                    onToggleFavorite={toggleFavorite}
+                    usageLabel={USAGE_MAP[t.title]}
+                  />
+                ))}
+                {filteredTemplates.length === 0 && (
+                  <div className="col-span-3 text-center py-16 text-text-tertiary">
+                    <p className="text-4xl mb-3">🔍</p>
+                    <p className="font-medium mb-1">No prompts found</p>
+                    <p className="text-sm">Try a different search or clear your filters</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ── Editor view ── */
+          <div className="flex-1 overflow-y-auto px-5 py-5">
+            <div className="max-w-5xl mx-auto">
+              {/* Editor header */}
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelected(null)}
+                    className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors px-2.5 py-1.5 rounded-lg hover:bg-surface-hover border border-border"
+                  >
+                    <ArrowLeft size={13} />
+                    Back to Library
+                  </button>
+                  <div className="h-4 w-px bg-border" />
+                  <div>
+                    <h2 className="text-text-primary font-bold text-sm">{selected.emoji} {selected.title}</h2>
+                    <p className="text-xs text-text-tertiary">{selected.category} · {USAGE_MAP[selected.title] || '—'} uses</p>
+                  </div>
                 </div>
-                <div style={{ height: 'calc(22 * 1.5rem + 1.5rem)', overflowY: 'auto' }} className="bg-surface border border-border rounded-xl px-4 py-3">
-                  {output ? (
-                    <div className="markdown-body text-sm leading-relaxed">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-text-tertiary text-sm text-center">
-                      {streaming ? (
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="flex gap-1">
-                            <span className="typing-dot" />
-                            <span className="typing-dot" />
-                            <span className="typing-dot" />
-                          </div>
-                          <span className="text-xs">Running your prompt…</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs">Fill in the prompt, then click<br />"Test Prompt" to see the AI output</span>
-                      )}
-                    </div>
-                  )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toggleFavorite(selected.title)}
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs border transition-all ${
+                      favorites.has(selected.title)
+                        ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        : 'bg-surface text-text-secondary border-border hover:text-text-primary hover:bg-surface-hover'
+                    }`}
+                  >
+                    <Star size={12} className={favorites.has(selected.title) ? 'fill-yellow-400' : ''} />
+                    {favorites.has(selected.title) ? 'Saved' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => copy(customized, 'prompt')}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-surface border border-border rounded-lg text-xs text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all"
+                  >
+                    {copied === 'prompt' ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                    {copied === 'prompt' ? 'Copied!' : 'Copy Prompt'}
+                  </button>
+                  <button
+                    onClick={test}
+                    disabled={streaming}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs text-white font-semibold transition-all disabled:opacity-50 shadow shadow-indigo-500/20"
+                    style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                  >
+                    {streaming ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
+                    {streaming ? 'Running…' : 'Test Prompt'}
+                  </button>
                 </div>
               </div>
+
+              {/* Two column layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Editor column */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-xs font-bold uppercase tracking-widest text-text-tertiary">Edit Prompt</p>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                      [VARIABLES] highlighted
+                    </span>
+                  </div>
+                  <textarea
+                    value={customized}
+                    onChange={e => setCustomized(e.target.value)}
+                    rows={24}
+                    className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary outline-none resize-none transition-all font-mono leading-relaxed focus:border-indigo-500/40"
+                  />
+                  <p className="text-xs text-text-tertiary mt-2">
+                    Replace <code className="bg-surface-hover px-1.5 py-0.5 rounded text-yellow-400 text-[10px]">[BRACKETS]</code> with your actual content, then click Test Prompt
+                  </p>
+                </div>
+
+                {/* Output column */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold uppercase tracking-widest text-text-tertiary">AI Response</p>
+                    {output && (
+                      <button onClick={() => copy(output, 'output')}
+                        className="flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors">
+                        {copied === 'output' ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
+                        {copied === 'output' ? 'Copied' : 'Copy output'}
+                      </button>
+                    )}
+                  </div>
+                  <div
+                    className="bg-surface border border-border rounded-xl px-4 py-3 overflow-y-auto"
+                    style={{ height: 'calc(24 * 1.5rem + 1.5rem)' }}
+                  >
+                    {output ? (
+                      <div className="markdown-body text-sm leading-relaxed prose prose-sm prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-text-tertiary text-sm text-center">
+                        {streaming ? (
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="flex gap-1.5">
+                              {[0,1,2].map(i => (
+                                <span key={i} className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: `${i * 0.12}s` }} />
+                              ))}
+                            </div>
+                            <span className="text-xs">Running your prompt…</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <Sparkles className="w-8 h-8 text-text-tertiary/40" />
+                            <span className="text-xs text-text-tertiary">Fill in the prompt variables,<br />then click Test Prompt</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Variable preview */}
+              {customized && /\[[^\]]+\]/.test(customized) && (
+                <div className="mt-4 p-3.5 bg-yellow-500/5 border border-yellow-500/20 rounded-xl">
+                  <p className="text-xs font-semibold text-yellow-400 mb-2">Variables to fill in</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[...new Set(customized.match(/\[[^\]]+\]/g) || [])].map(v => (
+                      <span key={v} className="text-[11px] px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-medium">{v}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -962,47 +1195,80 @@ export default function PromptsPage() {
   )
 }
 
+/* ─── Template Card ───────────────────────────────────── */
 function TemplateCard({
   template,
   onSelect,
   favorites,
   onToggleFavorite,
+  usageLabel,
 }: {
   template: Template & { category: string; categoryEmoji?: string; color: string }
   onSelect: (t: Template & { category: string; color: string }) => void
   favorites: Set<string>
   onToggleFavorite: (title: string) => void
+  usageLabel?: string
 }) {
   const isFav = favorites.has(template.title)
+  const preview = template.prompt.slice(0, 100).replace(/\n/g, ' ').trim()
+
   return (
     <div
-      className="group relative bg-surface border border-border rounded-xl p-4 hover:border-opacity-60 transition-all cursor-pointer"
+      className="group relative bg-surface border border-border rounded-xl p-4 cursor-pointer transition-all hover:shadow-md"
       onClick={() => onSelect(template)}
-      style={{ borderColor: 'var(--border)' }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.4)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.35)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
     >
+      {/* Fav button */}
       <button
         onClick={e => { e.stopPropagation(); onToggleFavorite(template.title) }}
-        className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded"
-        title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+        className="absolute top-3 right-3 p-1 rounded-lg transition-all hover:bg-surface-hover"
+        title={isFav ? 'Remove from favorites' : 'Save to favorites'}
       >
-        <Star size={13} className={isFav ? 'text-yellow-400 fill-yellow-400' : 'text-text-tertiary'} />
+        <Star size={13} className={isFav ? 'text-yellow-400 fill-yellow-400' : 'text-text-tertiary group-hover:text-text-secondary'} />
       </button>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">{template.emoji}</span>
-        <h3 className="text-text-primary text-xs font-semibold leading-tight group-hover:text-indigo-300 transition-colors">{template.title}</h3>
+
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-2.5 pr-6">
+        <span className="text-xl">{template.emoji}</span>
+        <h3 className="text-text-primary text-xs font-bold leading-snug group-hover:text-indigo-300 transition-colors">{template.title}</h3>
       </div>
-      <p className="text-text-tertiary text-xs leading-relaxed mb-3">{template.desc}</p>
-      {template.tags && (
+
+      {/* Description */}
+      <p className="text-text-tertiary text-xs leading-relaxed mb-2.5 line-clamp-2">{template.desc}</p>
+
+      {/* Prompt preview */}
+      <p className="text-[10px] text-text-tertiary/60 font-mono leading-relaxed mb-3 line-clamp-2 border-l-2 border-border pl-2">
+        {preview}…
+      </p>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between">
+        {/* Tags */}
         <div className="flex flex-wrap gap-1">
-          {template.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-text-tertiary">
-              {tag}
+          {template.tags?.slice(0, 2).map(tag => (
+            <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full border font-medium"
+              style={{
+                background: 'rgba(99,102,241,0.08)',
+                borderColor: 'rgba(99,102,241,0.2)',
+                color: '#a5b4fc',
+              }}>
+              #{tag}
             </span>
           ))}
         </div>
-      )}
+        {/* Usage */}
+        {usageLabel && (
+          <span className="text-[10px] text-text-tertiary font-medium">{usageLabel} uses</span>
+        )}
+      </div>
+
+      {/* Use button (appears on hover) */}
+      <div className="absolute inset-x-0 bottom-0 flex opacity-0 group-hover:opacity-100 transition-opacity p-3 pt-0 justify-end">
+        <div className="flex items-center gap-1 text-[10px] font-semibold text-indigo-400">
+          Use prompt <ChevronRight className="w-3 h-3" />
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,9 +1,10 @@
 'use client'
 
 import { PanelLeft, SquarePen } from 'lucide-react'
-import { useSidebar } from '@/contexts/SidebarContext'
 import { useRouter } from 'next/navigation'
+import PyxisMark from '@/components/brand/PyxisMark'
 import { useChat } from '@/contexts/ChatContext'
+import { useSidebar } from '@/contexts/SidebarContext'
 
 export default function SidebarHeader() {
   const { isOpen, toggle } = useSidebar()
@@ -17,23 +18,37 @@ export default function SidebarHeader() {
   }
 
   return (
-    <div className="flex items-center justify-between px-2 py-2 h-14 shrink-0">
+    <div className="flex items-center justify-between px-4 pb-4 pt-4">
       <button
-        onClick={toggle}
-        className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
-        title={isOpen ? 'Close sidebar' : 'Open sidebar'}
+        onClick={() => router.push('/hub')}
+        className="flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-100"
+        title="Go to hub"
       >
-        <PanelLeft size={20} />
+        <PyxisMark size={42} />
+        {isOpen && (
+          <div className="min-w-0 text-left">
+            <p className="font-display text-lg leading-none text-text-primary">Pyxis One</p>
+            <p className="mt-1 text-xs text-text-tertiary">AI operating system</p>
+          </div>
+        )}
       </button>
-      {isOpen && (
+
+      <div className="flex items-center gap-2">
         <button
           onClick={handleNewChat}
-          className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
+          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/80 bg-white/5 text-text-secondary transition-colors hover:border-border-light hover:text-text-primary"
           title="New chat"
         >
-          <SquarePen size={20} />
+          <SquarePen size={18} />
         </button>
-      )}
+        <button
+          onClick={toggle}
+          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/80 bg-white/5 text-text-secondary transition-colors hover:border-border-light hover:text-text-primary"
+          title={isOpen ? 'Close sidebar' : 'Open sidebar'}
+        >
+          <PanelLeft size={18} />
+        </button>
+      </div>
     </div>
   )
 }

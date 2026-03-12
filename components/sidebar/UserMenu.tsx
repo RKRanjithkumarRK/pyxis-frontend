@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { ChevronUp, LogOut, Settings, ShieldCheck } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { useRouter } from 'next/navigation'
-import { Settings, LogOut, ChevronUp } from 'lucide-react'
 
 export default function UserMenu() {
   const { user, signOut } = useAuth()
@@ -31,37 +31,48 @@ export default function UserMenu() {
   const initial = (user.displayName || user.email || '?')[0].toUpperCase()
 
   return (
-    <div ref={ref} className="relative p-2">
+    <div ref={ref} className="relative p-3">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-hover transition-colors"
+        className="flex w-full items-center gap-3 rounded-[22px] border border-border/80 bg-white/5 px-3 py-3 text-left transition-colors hover:border-border-light hover:bg-white/8"
       >
-        <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-sm font-medium text-accent shrink-0">
+        <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white/10 text-sm font-semibold text-cyan-200">
           {user.photoURL ? (
-            <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full object-cover" />
+            <img src={user.photoURL} alt="" className="h-11 w-11 object-cover" />
           ) : (
             initial
           )}
         </div>
-        <div className="flex-1 text-left min-w-0">
-          <div className="text-sm text-text-primary truncate">{user.displayName || 'User'}</div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-text-primary">{user.displayName || 'Workspace user'}</p>
+          <p className="truncate text-xs text-text-tertiary">{user.email || 'Guest session active'}</p>
         </div>
         <ChevronUp size={16} className={`text-text-tertiary transition-transform ${open ? '' : 'rotate-180'}`} />
       </button>
 
       {open && (
-        <div className="absolute bottom-full left-2 right-2 mb-1 bg-sidebar border border-border rounded-xl shadow-2xl py-1 z-50">
+        <div className="absolute bottom-full left-3 right-3 z-50 mb-2 rounded-[24px] border border-border/80 bg-sidebar/95 p-2 shadow-2xl backdrop-blur-2xl">
+          <div className="mb-2 flex items-center gap-2 rounded-[18px] bg-white/5 px-3 py-3">
+            <ShieldCheck size={16} className="text-cyan-300" />
+            <div>
+              <p className="text-xs font-semibold text-text-primary">Workspace security</p>
+              <p className="text-[11px] text-text-tertiary">Identity and session controls active</p>
+            </div>
+          </div>
+
           <button
-            onClick={() => { setSettingsOpen(true); setOpen(false) }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-hover transition-colors"
+            onClick={() => {
+              setSettingsOpen(true)
+              setOpen(false)
+            }}
+            className="flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm text-text-secondary transition-colors hover:bg-white/8 hover:text-text-primary"
           >
             <Settings size={16} />
             Settings
           </button>
-          <div className="h-px bg-border mx-2 my-1" />
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-hover transition-colors"
+            className="flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm text-text-secondary transition-colors hover:bg-white/8 hover:text-text-primary"
           >
             <LogOut size={16} />
             Log out

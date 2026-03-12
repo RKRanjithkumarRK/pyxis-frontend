@@ -1,245 +1,361 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import {
+  Activity,
+  ArrowRight,
+  Bot,
+  Boxes,
+  BrainCircuit,
+  Globe2,
+  Lock,
+  Radar,
+  ShieldCheck,
+  Sparkles,
+  Workflow,
+} from 'lucide-react'
+import PyxisMark from '@/components/brand/PyxisMark'
 import { useAuth } from '@/contexts/AuthContext'
 
-const SKILLS = [
-  { icon: '✍️', title: 'Prompt Engineering', desc: 'Craft precision prompts that extract 10× better results from any AI model', color: 'from-violet-500 to-purple-600' },
-  { icon: '⚙️', title: 'AI Workflow Builder', desc: 'Chain AI models together into automated, intelligent multi-step pipelines', color: 'from-orange-500 to-amber-500' },
-  { icon: '🤖', title: 'Specialized AI Agents', desc: 'Research, Code, Writing, Data Analysis, SEO — 8 expert agents on demand', color: 'from-blue-500 to-cyan-500' },
-  { icon: '📄', title: 'Document Intelligence', desc: 'Chat with PDFs, contracts, and reports — extract insights in seconds', color: 'from-emerald-500 to-green-500' },
-  { icon: '🎨', title: 'Image Generation', desc: 'Create stunning visuals from text — DALL-E 3, Stable Diffusion, and more', color: 'from-pink-500 to-rose-500' },
-  { icon: '🎛️', title: 'Prompt Library', desc: '50+ enterprise-grade prompts for marketing, legal, tech, and ops', color: 'from-indigo-500 to-blue-500' },
-  { icon: '🎙️', title: 'Voice AI Assistant', desc: 'Hands-free AI conversations with natural speech recognition & synthesis', color: 'from-teal-500 to-cyan-500' },
-  { icon: '⚡', title: 'Model Benchmarking', desc: 'Run any prompt across 6+ frontier AI models simultaneously and compare', color: 'from-yellow-500 to-orange-500' },
-  { icon: '🎬', title: 'AI Video Generation', desc: 'Transform text descriptions into AI-generated video clips', color: 'from-red-500 to-pink-500' },
-  { icon: '💻', title: 'Code Intelligence', desc: 'Generate, debug, explain, and run code across 50+ languages', color: 'from-slate-500 to-gray-500' },
-  { icon: '📊', title: 'LLM Benchmarks', desc: 'Real-time performance, latency, and quality metrics across AI models', color: 'from-purple-500 to-violet-600' },
-  { icon: '📰', title: 'AI Intelligence Feed', desc: 'Curated AI news from TechCrunch, MIT, Wired, and 20+ top sources', color: 'from-cyan-500 to-blue-500' },
-  { icon: '✒️', title: 'AI Writing Studio', desc: 'Write, improve, summarize, expand — 10 AI commands for any document', color: 'from-violet-500 to-purple-600' },
-]
-
 const STATS = [
-  { value: '13', label: 'AI Capabilities' },
-  { value: '6+', label: 'AI Models' },
-  { value: '100%', label: 'Free Forever' },
-  { value: '<1s', label: 'Response Time' },
+  { value: '42%', label: 'Faster decisions', detail: 'by routing work to the best agent automatically' },
+  { value: '11x', label: 'Operational leverage', detail: 'through reusable workflows and copilots' },
+  { value: '<500ms', label: 'First-token target', detail: 'with streaming and multi-model failover' },
+  { value: '99.95%', label: 'Enterprise uptime goal', detail: 'designed for global resiliency and control' },
 ]
 
-const TECH = ['Google Gemini 2.5', 'Meta Llama 3.3', 'Mistral AI', 'fal.ai', 'Replicate', 'OpenRouter']
+const PLATFORM_PILLARS = [
+  {
+    title: 'Autonomous Intelligence Layer',
+    description: 'Agents, copilots, and policy-aware automations that move from answering questions to doing real work.',
+    icon: Bot,
+  },
+  {
+    title: 'Knowledge Graph Memory',
+    description: 'A unified enterprise memory fabric spanning documents, conversations, decisions, and workflows.',
+    icon: BrainCircuit,
+  },
+  {
+    title: 'Trust and Governance',
+    description: 'Role-based access, auditability, provider routing, and zero-trust patterns built directly into the core.',
+    icon: ShieldCheck,
+  },
+]
+
+const MODULES = [
+  {
+    title: 'Control Tower',
+    description: 'Monitor models, workflows, usage, and quality signals in one operational nerve center.',
+    href: '/tools/command-center',
+    tag: 'Executive visibility',
+  },
+  {
+    title: 'Agent Fleet',
+    description: 'Launch domain-specialized agents for research, analysis, code, legal review, and content ops.',
+    href: '/tools/agents',
+    tag: 'Autonomous execution',
+  },
+  {
+    title: 'Knowledge Mesh',
+    description: 'Search, summarize, and reason across project files, documents, and structured context.',
+    href: '/tools/rag',
+    tag: 'Enterprise memory',
+  },
+  {
+    title: 'Workflow Graph',
+    description: 'Build trigger-to-action AI systems with approvals, retries, branching logic, and orchestration.',
+    href: '/tools/workflow',
+    tag: 'Operational automation',
+  },
+  {
+    title: 'Research Studio',
+    description: 'Turn live search signals into competitive briefs, product memos, and strategy-ready outputs.',
+    href: '/tools/research',
+    tag: 'New flagship',
+  },
+]
+
+const SIGNALS = [
+  'Provider mesh online: Gemini, OpenRouter, Together, Mistral, Groq',
+  'Policy engine enforcing tenant rules, tool scopes, and fallback budgets',
+  'Real-time command surfaces for chat, voice, code, image, and video generation',
+]
 
 export default function LandingPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && user) router.replace('/chat')
-  }, [user, loading, router])
+    if (!loading && user) router.replace('/hub')
+  }, [loading, router, user])
 
   if (loading || user) {
     return (
-      <div className="h-[100dvh] flex items-center justify-center" style={{ background: '#0a0a0a' }}>
-        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'rgba(16,163,127,0.4)', borderTopColor: '#10a37f' }} />
+      <div className="h-[100dvh] flex items-center justify-center bg-bg">
+        <div className="panel flex items-center gap-4 rounded-3xl px-6 py-5">
+          <PyxisMark size={46} />
+          <div>
+            <p className="font-display text-lg text-text-primary">Booting Pyxis One</p>
+            <p className="text-sm text-text-tertiary">Provisioning your control plane</p>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ background: '#0a0a0a', color: '#ececec', minHeight: '100dvh', overflowX: 'hidden' }}>
-
-      {/* ── Sticky Nav ── */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(10,10,10,0.85)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #10a37f, #0d8c6d)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="white"/>
-                <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>Pyxis</span>
-            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600, background: 'rgba(16,163,127,0.12)', border: '1px solid rgba(16,163,127,0.3)', color: '#10a37f' }}>
-              Enterprise
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Link href="/login" style={{ fontSize: 14, color: '#8e8e8e', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, transition: 'color 0.15s' }}>
-              Sign In
-            </Link>
-            <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 20px', borderRadius: 10, background: 'linear-gradient(135deg, #10a37f, #0d8c6d)', boxShadow: '0 0 20px rgba(16,163,127,0.35)' }}>
-              Get Started Free →
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Hero ── */}
-      <section style={{ position: 'relative', minHeight: '88vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {/* Background effects */}
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: '5%', left: '5%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,163,127,0.1) 0%, transparent 65%)', animation: 'landingPulse 9s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: '20%', right: '5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.09) 0%, transparent 65%)', animation: 'landingPulse 11s ease-in-out infinite 3s' }} />
-          <div style={{ position: 'absolute', bottom: '5%', left: '30%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 65%)', animation: 'landingPulse 13s ease-in-out infinite 6s' }} />
-          {/* Grid pattern */}
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '64px 64px' }} />
-          {/* Gradient overlay */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, background: 'linear-gradient(to bottom, transparent, #0a0a0a)' }} />
-        </div>
-
-        <div style={{ position: 'relative', maxWidth: 900, margin: '0 auto', padding: '80px 24px', textAlign: 'center' }}>
-          {/* Live badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 40, background: 'rgba(16,163,127,0.08)', border: '1px solid rgba(16,163,127,0.2)', marginBottom: 32 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10a37f', display: 'inline-block', animation: 'landingPulse 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#10a37f' }}>Enterprise AI Platform · 100% Free · No API Key Required</span>
-          </div>
-
-          {/* Headline */}
-          <h1 style={{ fontWeight: 800, lineHeight: 1.08, marginBottom: 24, fontSize: 'clamp(2.8rem, 7vw, 5.5rem)' }}>
-            <span style={{ display: 'block', background: 'linear-gradient(135deg, #ffffff 30%, #a3a3a3 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              Every AI Capability
-            </span>
-            <span style={{ display: 'block', background: 'linear-gradient(135deg, #10a37f 0%, #6366f1 50%, #8b5cf6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              In One Platform
-            </span>
-          </h1>
-
-          <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.25rem)', color: '#8e8e8e', maxWidth: 640, margin: '0 auto 40px', lineHeight: 1.7 }}>
-            Pyxis unifies 12 enterprise-grade AI capabilities — intelligent agents, document intelligence, image & video generation, model benchmarking, and more — all free, all in one place.
-          </p>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 32px', borderRadius: 14, fontWeight: 700, fontSize: 16, color: '#fff', textDecoration: 'none', background: 'linear-gradient(135deg, #10a37f, #0d8c6d)', boxShadow: '0 0 50px rgba(16,163,127,0.35)', transition: 'transform 0.15s' }}>
-              Start Building Free →
-            </Link>
-            <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 32px', borderRadius: 14, fontWeight: 600, fontSize: 16, color: '#ececec', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)' }}>
-              View All 12 Skills
-            </Link>
-          </div>
-
-          {/* Tech pill row */}
-          <div style={{ marginTop: 48, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-            {TECH.map(t => (
-              <span key={t} style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#8e8e8e' }}>
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Stats ── */}
-      <section style={{ background: 'rgba(255,255,255,0.018)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', padding: '48px 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 32 }}>
-          {STATS.map(s => (
-            <div key={s.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 48, fontWeight: 800, background: 'linear-gradient(135deg, #10a37f, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1.2, marginBottom: 4 }}>
-                {s.value}
+    <div className="min-h-[100dvh] overflow-y-auto bg-bg text-text-primary">
+      <div className="hero-noise">
+        <nav className="sticky top-0 z-50 border-b border-border/70 bg-bg/70 backdrop-blur-2xl">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
+            <div className="flex items-center gap-3">
+              <PyxisMark size={40} />
+              <div>
+                <p className="font-display text-lg leading-none">Pyxis One</p>
+                <p className="text-xs text-text-tertiary">AI Operating System</p>
               </div>
-              <div style={{ fontSize: 14, color: '#8e8e8e' }}>{s.label}</div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Features Grid ── */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: '96px 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 700, color: '#ececec', marginBottom: 12 }}>
-            12 Enterprise AI Capabilities
-          </h2>
-          <p style={{ fontSize: 18, color: '#8e8e8e', maxWidth: 540, margin: '0 auto' }}>
-            Everything your organization needs to leverage AI at scale — all in one unified platform
-          </p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-          {SKILLS.map((skill) => (
-            <Link
-              key={skill.title}
-              href="/login"
-              style={{ display: 'block', padding: '20px', borderRadius: 16, background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', textDecoration: 'none', transition: 'all 0.2s', cursor: 'pointer' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.045)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(16,163,127,0.3)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
-            >
-              <div className={`bg-gradient-to-br ${skill.color}`} style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 12 }}>
-                {skill.icon}
-              </div>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: '#ececec', marginBottom: 6 }}>{skill.title}</h3>
-              <p style={{ fontSize: 12, color: '#8e8e8e', lineHeight: 1.6 }}>{skill.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Why Pyxis ── */}
-      <section style={{ background: 'rgba(255,255,255,0.018)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 24px' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 700, color: '#ececec', marginBottom: 12 }}>
-              Built for Enterprise, Priced for Everyone
-            </h2>
-            <p style={{ fontSize: 17, color: '#8e8e8e' }}>No subscriptions. No API keys. No limits.</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-            {[
-              { icon: '🚀', title: 'Production-Ready Stack', desc: 'Built on Next.js 14, Firebase, and frontier AI models. Enterprise architecture from day one.' },
-              { icon: '🔒', title: 'Secure by Default', desc: 'Firebase Authentication, token verification on every API call. Your data stays yours.' },
-              { icon: '⚡', title: 'Sub-Second Responses', desc: 'SSE streaming, edge functions, and async polling keep every interaction snappy.' },
-              { icon: '🌐', title: 'Multi-Model Resilience', desc: 'If one AI provider fails, we automatically fall back to the next — zero downtime.' },
-              { icon: '🧠', title: 'Frontier AI Models', desc: 'Gemini 2.5 Flash, Llama 3.3 70B, Mistral, and more — always the latest models.' },
-              { icon: '💰', title: 'Completely Free', desc: 'Every capability, every model, every feature — free forever. No catch, no credit card.' },
-            ].map(item => (
-              <div key={item.title} style={{ padding: '24px', borderRadius: 16, background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ fontSize: 28, marginBottom: 12 }}>{item.icon}</div>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#ececec', marginBottom: 8 }}>{item.title}</h3>
-                <p style={{ fontSize: 13, color: '#8e8e8e', lineHeight: 1.6 }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section style={{ padding: '96px 24px', textAlign: 'center', background: 'radial-gradient(ellipse at center, rgba(16,163,127,0.06) 0%, transparent 70%)' }}>
-        <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 700, color: '#ececec', marginBottom: 16 }}>
-          The AI platform you&apos;ve been waiting for
-        </h2>
-        <p style={{ fontSize: 18, color: '#8e8e8e', marginBottom: 40, maxWidth: 480, margin: '0 auto 40px' }}>
-          Start using all 12 AI capabilities in under 60 seconds. No setup, no API keys, no credit card.
-        </p>
-        <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '16px 40px', borderRadius: 16, fontWeight: 700, fontSize: 18, color: '#fff', textDecoration: 'none', background: 'linear-gradient(135deg, #10a37f, #6366f1)', boxShadow: '0 0 80px rgba(16,163,127,0.2)', transition: 'transform 0.15s' }}>
-          Get Started Free — No Credit Card
-        </Link>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '32px 24px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 24, height: 24, borderRadius: 6, background: 'linear-gradient(135deg, #10a37f, #0d8c6d)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="white"/>
-                <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+            <div className="hidden items-center gap-3 md:flex">
+              <a href="#platform" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
+                Platform
+              </a>
+              <a href="#advantage" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
+                Advantage
+              </a>
+              <Link href="/login" className="rounded-full border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:border-border-light hover:text-text-primary">
+                Sign in
+              </Link>
+              <Link href="/login" className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition-transform hover:scale-[1.02]">
+                Enter Pyxis
+              </Link>
             </div>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#b4b4b4' }}>Pyxis AI Platform</span>
           </div>
-          <p style={{ fontSize: 12, color: '#8e8e8e', textAlign: 'center' }}>
-            Powered by Google Gemini · Meta Llama · Mistral AI · fal.ai · Replicate · OpenRouter
-          </p>
-        </div>
-      </footer>
+        </nav>
 
-      {/* Keyframe definitions */}
-      <style>{`
-        @keyframes landingPulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.08); opacity: 0.8; }
-        }
-      `}</style>
+        <section className="relative overflow-hidden">
+          <div className="grid-bg absolute inset-0 opacity-40" />
+          <div className="mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-14 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:pb-24 lg:pt-20">
+            <div>
+              <div className="pill mb-6 text-sm text-text-secondary">
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
+                Enterprise-grade AI orchestration for search, workflow, media, code, and decisioning
+              </div>
+
+              <h1 className="font-display text-5xl leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
+                Build the <span className="text-gradient">AI command center</span> that runs your company.
+              </h1>
+
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-text-secondary sm:text-xl">
+                Pyxis One transforms your existing AI app into a full operating system for enterprise execution:
+                copilots, autonomous workflows, multimodal studios, knowledge memory, governance, and model routing in one platform.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition-transform hover:scale-[1.02]"
+                >
+                  Launch Control Tower
+                  <ArrowRight size={16} />
+                </Link>
+                <a
+                  href="#platform"
+                  className="inline-flex items-center gap-2 rounded-full border border-border-light px-6 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-hover"
+                >
+                  Explore the platform
+                </a>
+              </div>
+
+              <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {STATS.map((stat) => (
+                  <div key={stat.label} className="metric-card rounded-3xl p-4">
+                    <p className="font-display text-3xl text-text-primary">{stat.value}</p>
+                    <p className="mt-1 text-sm font-semibold text-text-primary">{stat.label}</p>
+                    <p className="mt-2 text-xs leading-5 text-text-tertiary">{stat.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="panel relative overflow-hidden rounded-[32px] p-6 sm:p-8">
+                <div className="absolute inset-x-0 top-0 h-px shimmer-line" />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.28em] text-text-tertiary">Live orchestration</p>
+                    <h2 className="font-display text-2xl text-text-primary">Executive Control Plane</h2>
+                  </div>
+                  <div className="pill text-xs text-emerald-300">
+                    <Activity size={14} />
+                    All systems live
+                  </div>
+                </div>
+
+                <div className="mt-7 grid gap-4 sm:grid-cols-2">
+                  <div className="glass-panel rounded-3xl p-5">
+                    <div className="flex items-center justify-between text-sm text-text-secondary">
+                      <span>Agent fleet status</span>
+                      <span className="font-medium text-emerald-300">24 active</span>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {['Research council', 'Revenue copilot', 'Security sentinel'].map((agent, index) => (
+                        <div key={agent} className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+                          <div>
+                            <p className="text-sm font-semibold text-text-primary">{agent}</p>
+                            <p className="text-xs text-text-tertiary">Runbook {index + 1} online</p>
+                          </div>
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.65)]" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="glass-panel rounded-3xl p-5">
+                    <div className="flex items-center justify-between text-sm text-text-secondary">
+                      <span>Model router</span>
+                      <span className="font-medium text-cyan-300">Latency aware</span>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {[
+                        ['Gemini 2.5 Flash', '244ms'],
+                        ['Llama 3.3 70B', '612ms'],
+                        ['Mistral Small', '318ms'],
+                      ].map(([model, latency]) => (
+                        <div key={model} className="rounded-2xl border border-border/80 px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold text-text-primary">{model}</p>
+                            <p className="text-xs text-text-tertiary">{latency}</p>
+                          </div>
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                            <div className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-indigo-400 to-emerald-300" style={{ width: latency === '244ms' ? '82%' : latency === '318ms' ? '68%' : '54%' }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-[28px] border border-border/80 bg-slate-950/35 p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">Enterprise command stream</p>
+                      <p className="text-xs text-text-tertiary">Signals from governance, routing, and workflow execution</p>
+                    </div>
+                    <Radar className="text-cyan-300" size={18} />
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {SIGNALS.map((signal) => (
+                      <div key={signal} className="flex items-start gap-3 rounded-2xl bg-white/5 px-4 py-3">
+                        <span className="mt-1 h-2 w-2 rounded-full bg-cyan-300" />
+                        <p className="text-sm leading-6 text-text-secondary">{signal}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="platform" className="border-y border-border/70 bg-black/10">
+          <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+            <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Platform Surface</p>
+                <h2 className="font-display text-4xl text-text-primary sm:text-5xl">A single operating layer for AI-native organizations.</h2>
+              </div>
+              <p className="max-w-xl text-base leading-7 text-text-secondary">
+                Instead of stitching together chat apps, tools, prompt vaults, workflow builders, and analytics dashboards, Pyxis One unifies the entire system into one extensible control plane.
+              </p>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+              {MODULES.map((module) => (
+                <Link
+                  key={module.title}
+                  href={module.href}
+                  className="panel group rounded-[28px] p-6 transition-transform hover:-translate-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="pill text-xs text-cyan-200">{module.tag}</span>
+                    <ArrowRight className="text-text-tertiary transition-transform group-hover:translate-x-1 group-hover:text-text-primary" size={18} />
+                  </div>
+                  <h3 className="mt-6 font-display text-2xl text-text-primary">{module.title}</h3>
+                  <p className="mt-3 max-w-xl text-sm leading-7 text-text-secondary">{module.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="advantage">
+          <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+            <div className="grid gap-5 lg:grid-cols-3">
+              {PLATFORM_PILLARS.map((pillar) => (
+                <div key={pillar.title} className="glass-panel rounded-[28px] p-6">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/8">
+                    <pillar.icon className="text-cyan-300" size={22} />
+                  </div>
+                  <h3 className="mt-5 font-display text-2xl text-text-primary">{pillar.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-text-secondary">{pillar.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 panel rounded-[32px] p-8">
+              <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Built to sell upward</p>
+                  <h2 className="mt-3 font-display text-4xl text-text-primary">Impressive enough for a founder demo. Structured enough for an enterprise RFP.</h2>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    ['Global readiness', 'Multi-provider routing, async workflows, and command surfaces built for scale.'],
+                    ['Security posture', 'Authentication, access control, governance, and data isolation patterns ready to harden.'],
+                    ['AI-native UX', 'Command-first navigation, adaptive workspaces, and high-density operational dashboards.'],
+                    ['Expansion path', 'Marketplace, plugins, APIs, analytics, and multi-tenant control foundations.'],
+                  ].map(([title, description]) => (
+                    <div key={title} className="rounded-[24px] border border-border/80 bg-white/5 p-5">
+                      <p className="font-semibold text-text-primary">{title}</p>
+                      <p className="mt-2 text-sm leading-6 text-text-secondary">{description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="px-5 pb-16 sm:px-8">
+          <div className="mx-auto max-w-7xl rounded-[36px] border border-border/80 bg-gradient-to-r from-cyan-400/10 via-indigo-500/10 to-emerald-400/10 px-8 py-10">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Start the upgrade</p>
+                <h2 className="mt-3 font-display text-4xl text-text-primary">Your existing Pyxis stack now has a stronger flagship surface and a bigger product story.</h2>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/login" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950">
+                  Enter the workspace
+                  <ArrowRight size={16} />
+                </Link>
+                <Link href="/tools/command-center" className="inline-flex items-center gap-2 rounded-full border border-border-light px-6 py-3 text-sm font-semibold text-text-primary">
+                  View the control center
+                  <Sparkles size={16} />
+                </Link>
+              </div>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3 text-sm text-text-secondary">
+              <span className="pill"><Boxes size={14} /> Modular architecture</span>
+              <span className="pill"><Radar size={14} /> Deep research studio</span>
+              <span className="pill"><Workflow size={14} /> Workflow automation</span>
+              <span className="pill"><Globe2 size={14} /> Global-ready platform</span>
+              <span className="pill"><Lock size={14} /> Secure by design</span>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   )
 }

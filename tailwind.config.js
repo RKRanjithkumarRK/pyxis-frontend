@@ -5,7 +5,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // All colors use CSS variables so light/dark theme switching works
         bg: 'var(--bg)',
         sidebar: 'var(--sidebar)',
         surface: 'var(--surface)',
@@ -22,11 +21,21 @@ module.exports = {
         danger: 'var(--danger)',
       },
       fontFamily: {
-        sans: ['Söhne', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        mono: ['Söhne Mono', 'Monaco', 'Andale Mono', 'Ubuntu Mono', 'monospace'],
+        sans: ['var(--font-body)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        display: ['var(--font-display)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
         '15': '0.9375rem',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '200% center' },
+          '100%': { backgroundPosition: '-200% center' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 4s linear infinite',
       },
     },
   },
