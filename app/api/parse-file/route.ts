@@ -3,6 +3,17 @@ import { NextRequest, NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
+// pdf-parse / pdfjs uses DOMMatrix which doesn't exist in Node.js — polyfill it
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(globalThis as any).DOMMatrix = class DOMMatrix {
+    constructor(_init?: string | number[]) {}
+    static fromMatrix() { return new (globalThis as any).DOMMatrix() }
+    static fromFloat32Array() { return new (globalThis as any).DOMMatrix() }
+    static fromFloat64Array() { return new (globalThis as any).DOMMatrix() }
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()

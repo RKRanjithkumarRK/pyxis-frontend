@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth-helper'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 30
+export const maxDuration = 55  // Vercel Hobby allows up to 60s
+
+const HF_VIDEO_MODEL = 'damo-vilab/text-to-video-ms-1.7b'
 
 /**
  * POST /api/video
- * 1. Try fal.ai queue (fast, returns jobId immediately for client polling)
- * 2. Try Replicate queue (fallback, also async)
- * Returns { jobId, provider } or { error, balanceExhausted? }
+ * Priority:
+ *  1. HuggingFace Inference API — free, no API key needed (rate-limited for anon)
+ *  2. fal.ai queue — async, returns jobId
+ *  3. Replicate queue — async, returns jobId
+ *
+ * Returns one of:
+ *   { url, provider: 'huggingface' }  — direct video, no polling needed
+ *   { jobId, provider: 'fal'|'replicate' } — async, client must poll
  */
 export async function POST(req: NextRequest) {
   const user = await verifyToken(req)
@@ -17,10 +24,55 @@ export async function POST(req: NextRequest) {
   const { prompt } = await req.json()
   if (!prompt?.trim()) return NextResponse.json({ error: 'Missing prompt' }, { status: 400 })
 
+  const cleanPrompt  = prompt.trim().slice(0, 150)
   const falKey       = process.env.FAL_KEY
   const replicateKey = process.env.REPLICATE_API_TOKEN
+  const hfKey        = process.env.HUGGINGFACE_API_KEY // optional — anon works too
 
-  /* ── 1. fal.ai queue ── */
+  /* ── 1. HuggingFace Inference (free, no API key required) ── */
+  try {
+    const hfHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-wait-for-model': 'true',  // wait for cold-start load
+    }
+    if (hfKey) hfHeaders['Authorization'] = `Bearer ${hfKey}`
+
+    const hfRes = await fetch(
+      `https://api-inference.huggingface.co/models/${HF_VIDEO_MODEL}`,
+      {
+        method: 'POST',
+        headers: hfHeaders,
+        body: JSON.stringify({ inputs: cleanPrompt }),
+        signal: AbortSignal.timeout(48_000), // 48s — leaves buffer before Vercel limit
+      }
+    )
+
+    if (hfRes.ok) {
+      const contentType = hfRes.headers.get('content-type') || 'video/mp4'
+      // HF returns binary video data
+      if (contentType.includes('video') || contentType.includes('octet-stream')) {
+        const buffer = await hfRes.arrayBuffer()
+        if (buffer.byteLength > 1000) { // sanity check — real video is > 1KB
+          const base64 = Buffer.from(buffer).toString('base64')
+          const mime   = contentType.includes('video') ? contentType.split(';')[0] : 'video/mp4'
+          return NextResponse.json({
+            url: `data:${mime};base64,${base64}`,
+            provider: 'huggingface',
+          })
+        }
+      }
+    }
+
+    const hfStatus = hfRes.status
+    const hfText   = await hfRes.text().catch(() => '')
+    console.warn('[video/hf] failed:', hfStatus, hfText.slice(0, 200))
+    // Fall through to fal.ai / Replicate
+  } catch (err: any) {
+    console.warn('[video/hf] threw (timeout or network):', err.message)
+    // Fall through
+  }
+
+  /* ── 2. fal.ai queue ── */
   if (falKey) {
     try {
       const res = await fetch(
@@ -29,13 +81,13 @@ export async function POST(req: NextRequest) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Key ${falKey}` },
           body: JSON.stringify({
-            prompt: prompt.trim().slice(0, 150),
+            prompt: cleanPrompt,
             video_size: { width: 512, height: 288 },
             num_inference_steps: 25,
             guidance_scale: 7.5,
             num_frames: 16,
           }),
-          signal: AbortSignal.timeout(15_000),
+          signal: AbortSignal.timeout(12_000),
         }
       )
 
@@ -46,21 +98,13 @@ export async function POST(req: NextRequest) {
       }
 
       const errText = await res.text().catch(() => '')
-      // Detect balance exhausted — fall through to Replicate
-      if (res.status === 403 && errText.toLowerCase().includes('exhausted')) {
-        console.warn('[video/fal] balance exhausted — trying Replicate fallback')
-        // fall through
-      } else {
-        console.error('[video/fal] submit error:', res.status, errText.slice(0, 200))
-        // fall through to Replicate
-      }
+      console.error('[video/fal] submit error:', res.status, errText.slice(0, 200))
     } catch (err: any) {
       console.error('[video/fal] threw:', err.message)
-      // fall through
     }
   }
 
-  /* ── 2. Replicate queue ── */
+  /* ── 3. Replicate queue ── */
   if (replicateKey) {
     try {
       const res = await fetch('https://api.replicate.com/v1/predictions', {
@@ -70,10 +114,9 @@ export async function POST(req: NextRequest) {
           Authorization: `Token ${replicateKey}`,
         },
         body: JSON.stringify({
-          // zeroscope-v2-xl: reliable free text-to-video on Replicate
           version: '9f747673945c62801b13b84701c783929c0ee784e4748ec062204894dda1a351',
           input: {
-            prompt: prompt.trim().slice(0, 150),
+            prompt: cleanPrompt,
             num_frames: 24,
             width: 576,
             height: 320,
@@ -81,7 +124,7 @@ export async function POST(req: NextRequest) {
             fps: 8,
           },
         }),
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(12_000),
       })
 
       if (res.ok) {
@@ -97,19 +140,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  /* ── No provider worked ── */
-  if (!falKey && !replicateKey) {
-    return NextResponse.json(
-      { error: 'Video generation is not configured on this server.', notConfigured: true },
-      { status: 503 }
-    )
-  }
-
-  // Likely fal.ai balance exhausted and no Replicate key
+  /* ── All providers failed ── */
   return NextResponse.json(
     {
-      error: 'fal.ai balance exhausted. Top up at fal.ai/dashboard/billing, or add a REPLICATE_API_TOKEN to Vercel for a free fallback.',
-      balanceExhausted: true,
+      error: 'Video generation is temporarily unavailable. HuggingFace free tier may be at capacity — please try again in a few minutes.',
+      retryable: true,
     },
     { status: 503 }
   )
