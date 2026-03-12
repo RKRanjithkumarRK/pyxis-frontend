@@ -50,6 +50,22 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     setIsOpen(width >= 1024)
   }, [])
 
+  useEffect(() => {
+    const syncForViewport = () => {
+      if (window.innerWidth < 768) {
+        setIsOpen(false)
+        return
+      }
+
+      if (window.innerWidth >= 1280) {
+        setIsOpen(true)
+      }
+    }
+
+    window.addEventListener('resize', syncForViewport)
+    return () => window.removeEventListener('resize', syncForViewport)
+  }, [])
+
   const persistOpen = (open: boolean) => {
     setIsOpen(open)
     if (typeof window !== 'undefined') {
