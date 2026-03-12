@@ -20,16 +20,16 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | null>(null)
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  // Default open for SSR; on mobile (<768px) we close it after mount
+  // Default open for SSR; after mount we collapse it on smaller viewports.
   const [isOpen, setIsOpen] = useState(true)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  // On first client render, close sidebar on small screens
+  // Keep the canvas wider on phones, tablets, and narrower desktop windows.
   useEffect(() => {
-    if (window.innerWidth < 768) {
+    if (window.innerWidth < 1440) {
       setIsOpen(false)
     }
   }, [])
