@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, X, Globe, Rss, Bot, FileText, BarChart2, Code2, Wand2, LayoutGrid, Sparkles, Image, Mic, MessageSquare, PenLine, Terminal, Workflow, Package } from 'lucide-react'
+import { Search, X, Globe, Rss, Bot, FileText, BarChart2, Code2, Wand2, LayoutGrid, Sparkles, Image, Mic, MessageSquare, PenLine, Terminal, Workflow, Package, Gamepad2 } from 'lucide-react'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -8,7 +8,7 @@ import { useState } from 'react'
 const TOOLS = [
   { href: '/hub',            icon: LayoutGrid,    label: 'Skills Hub',     color: 'text-indigo-400',  badge: '16 Skills' },
   { href: '/chat',           icon: MessageSquare, label: 'AI Chat',        color: 'text-accent',      badge: null },
-  { href: '/tools/agents',   icon: Bot,           label: 'AI Agents',      color: 'text-orange-400',  badge: '8 Agents' },
+  { href: '/tools/agents',   icon: Bot,           label: 'AI Agents',      color: 'text-orange-400',  badge: '12 Agents' },
   { href: '/tools/compare',  icon: BarChart2,     label: 'LLM Benchmark',  color: 'text-yellow-400',  badge: '6 Models' },
   { href: '/tools/code',     icon: Code2,         label: 'Code Studio',    color: 'text-green-400',   badge: '7 Modes' },
   { href: '/tools/prompts',  icon: Wand2,         label: 'Prompt Library', color: 'text-violet-400',  badge: '30+' },
@@ -22,6 +22,7 @@ const TOOLS = [
   { href: '/tools/command-center', icon: Terminal,  label: 'Command Center', color: 'text-sky-400',     badge: 'New' },
   { href: '/tools/workflow', icon: Workflow,      label: 'Workflow Builder',color: 'text-fuchsia-400', badge: 'New' },
   { href: '/tools/marketplace',    icon: Package,   label: 'Marketplace',    color: 'text-emerald-400', badge: '12 Plugins' },
+  { href: '/tools/snake',    icon: Gamepad2,  label: 'Snake',          color: 'text-lime-400',    badge: null },
 ]
 
 export default function NavLinks() {

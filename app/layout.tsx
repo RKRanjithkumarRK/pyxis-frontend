@@ -15,8 +15,8 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Pyxis',
-  description: 'AI chat assistant powered by multiple models.',
+  title: 'Pyxis — Enterprise AI Platform',
+  description: 'The all-in-one enterprise AI platform. 12 capabilities: AI chat, agents, document intelligence, image generation, video creation, code studio, voice AI, and more — 100% free.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
