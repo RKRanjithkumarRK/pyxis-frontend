@@ -24,7 +24,7 @@ export default function Sidebar() {
       <aside
         className={`sidebar-transition flex flex-col overflow-hidden ${
           isOpen
-            ? 'w-[304px] max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:h-full max-md:max-w-[calc(100vw-0.75rem)] max-md:pb-safe max-md:pl-safe'
+            ? 'w-[288px] max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:h-full max-md:max-w-[calc(100vw-0.75rem)] max-md:pb-safe max-md:pl-safe'
             : 'w-0'
         } md:relative md:shrink-0 md:h-full`}
       >
