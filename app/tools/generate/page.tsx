@@ -3,184 +3,266 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   Sparkles, Video, Music, RefreshCw, Download,
-  Mic2, Volume2, X, Film, Upload, ZoomIn, ZoomOut,
-  ArrowLeft, ArrowRight, RotateCcw, ImageIcon,
+  Mic2, Volume2, X, Film, Upload, ImageIcon, AlertCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 /* ─── types ─────────────────────────────────────────────────────── */
-type Tab      = 'img2vid' | 'txt2vid' | 'audio'
-type Motion   = 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'orbit' | 'cinematic'
-type Duration = 6 | 10 | 15
+type Tab = 'txt2vid' | 'img2vid' | 'audio'
 
-/* ─── constants ─────────────────────────────────────────────────── */
-const VW = 1280, VH = 720, FPS = 30
-
-const MOTIONS: { id: Motion; label: string; Icon: any }[] = [
-  { id: 'zoom-in',   label: 'Zoom In',   Icon: ZoomIn    },
-  { id: 'zoom-out',  label: 'Zoom Out',  Icon: ZoomOut   },
-  { id: 'pan-left',  label: 'Pan Left',  Icon: ArrowLeft },
-  { id: 'pan-right', label: 'Pan Right', Icon: ArrowRight },
-  { id: 'orbit',     label: 'Orbit',     Icon: RotateCcw  },
-  { id: 'cinematic', label: 'Cinematic', Icon: Film       },
-]
-
-const EXAMPLES = [
-  'ocean waves crashing at sunset',
-  'golden retriever running on a beach',
-  'cherry blossoms falling in the wind',
-  'campfire burning at night in forest',
-  'timelapse clouds over mountains',
-  'city skyline at dusk with lights',
-]
-
-/* ─── canvas / video helpers ─────────────────────────────────────── */
-function ease(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
-
-function drawFrame(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  t: number,
-  motion: Motion,
-) {
-  const p  = ease(t)
-  const ar = img.width / img.height
-  const canAR = VW / VH
-  const bW = ar > canAR ? VH * ar : VW
-  const bH = ar > canAR ? VH : VW / ar
-
-  let scale = 1, dx = 0, dy = 0
-
-  switch (motion) {
-    case 'zoom-in':   scale = 1 + p * 0.35; break
-    case 'zoom-out':  scale = 1.35 - p * 0.35; break
-    case 'pan-left':  scale = 1.35; dx = p * -VW * 0.18; break
-    case 'pan-right': scale = 1.35; dx = p * VW * 0.18; break
-    case 'orbit':
-      scale = 1.2
-      dx = Math.sin(t * Math.PI * 2) * VW * 0.07
-      dy = Math.cos(t * Math.PI * 2) * VH * 0.05
-      break
-    case 'cinematic':
-      scale = 1 + p * 0.28
-      dx = Math.sin(p * Math.PI) * VW * 0.08
-      dy = -p * VH * 0.04
-      break
-  }
-
-  const dW = bW * scale, dH = bH * scale
-  ctx.clearRect(0, 0, VW, VH)
-  ctx.drawImage(img, (VW - dW) / 2 + dx, (VH - dH) / 2 + dy, dW, dH)
+/* ─── Gradio Space definitions (free, no account) ──────────────── */
+interface SpaceDef {
+  name: string
+  url: string
+  fnIndex: number
+  inputs: (prompt: string) => unknown[]
 }
 
-function loadImgFromURL(url: string): Promise<HTMLImageElement> {
-  return new Promise((res, rej) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload  = () => res(img)
-    img.onerror = () => rej(new Error('Failed to load image'))
-    img.src = url
+/**
+ * HuggingFace Gradio Spaces for text-to-video.
+ * These are publicly accessible, no API key needed.
+ * Tried in order — first success wins.
+ */
+const T2V_SPACES: SpaceDef[] = [
+  {
+    name: 'CogVideoX-5B',
+    url: 'https://thudm-cogvideox-5b.hf.space',
+    fnIndex: 0,
+    inputs: (p) => [p, 42, 49, 8, 6.0, 50],
+  },
+  {
+    name: 'CogVideoX-2B',
+    url: 'https://thudm-cogvideox-2b.hf.space',
+    fnIndex: 0,
+    inputs: (p) => [p, 42, 49, 8, 6.0, 50],
+  },
+  {
+    name: 'ZeroScope V2',
+    url: 'https://hysts-zeroscope-v2.hf.space',
+    fnIndex: 0,
+    inputs: (p) => [p, '', 0, 576, 320, 24, 7.5, 50, 1],
+  },
+  {
+    name: 'AnimateDiff',
+    url: 'https://guoyww-animatediff.hf.space',
+    fnIndex: 0,
+    inputs: (p) => [p, '', 7.5, 1, 16, 8],
+  },
+]
+
+/** Stable Video Diffusion space for image → video */
+const I2V_SPACES: SpaceDef[] = [
+  {
+    name: 'Stable Video Diffusion',
+    url: 'https://stabilityai-stable-video-diffusion.hf.space',
+    fnIndex: 0,
+    inputs: (imgB64) => [imgB64, 25, 4.0, 127, 1],
+  },
+  {
+    name: 'SVD-XT',
+    url: 'https://multimodalart-stable-video-diffusion.hf.space',
+    fnIndex: 0,
+    inputs: (imgB64) => [imgB64, 25, 4.0, 127],
+  },
+]
+
+/* ─── helpers ────────────────────────────────────────────────────── */
+const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+
+/** Try a Gradio space via SSE queue protocol */
+function tryGradioSpace(
+  space: SpaceDef,
+  inputs: unknown[],
+  onStatus: (s: string) => void,
+  onPct: (n: number) => void,
+  cancelRef: { current: boolean },
+): Promise<Blob> {
+  const sessionHash = Math.random().toString(36).slice(2, 12)
+
+  return new Promise(async (resolve, reject) => {
+    /* 1. Join the queue */
+    let joinOk = false
+    try {
+      const jr = await fetch(`${space.url}/queue/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: inputs,
+          fn_index: space.fnIndex,
+          session_hash: sessionHash,
+          event_data: null,
+        }),
+        signal: AbortSignal.timeout(20_000),
+      })
+      joinOk = jr.ok
+      if (!jr.ok) {
+        const txt = await jr.text().catch(() => '')
+        reject(new Error(`Join ${jr.status}: ${txt.slice(0, 100)}`))
+        return
+      }
+    } catch (e: any) {
+      reject(new Error(`Network: ${e.message}`))
+      return
+    }
+
+    if (cancelRef.current) { reject(new Error('Cancelled')); return }
+
+    /* 2. Stream events */
+    const es = new EventSource(`${space.url}/queue/data?session_hash=${sessionHash}`)
+    let done = false
+
+    const fail = (msg: string) => {
+      if (done) return; done = true
+      es.close(); clearTimeout(timeout)
+      reject(new Error(msg))
+    }
+    const succeed = (blob: Blob) => {
+      if (done) return; done = true
+      es.close(); clearTimeout(timeout)
+      resolve(blob)
+    }
+
+    const timeout = setTimeout(() => fail('Timeout (8 min)'), 8 * 60 * 1000)
+
+    es.addEventListener('message', async (evt) => {
+      if (done) return
+      if (cancelRef.current) { fail('Cancelled'); return }
+
+      let msg: any
+      try { msg = JSON.parse(evt.data) } catch { return }
+
+      switch (msg.msg) {
+        case 'queue_full':
+          fail('Queue full'); break
+
+        case 'estimation': {
+          const eta = Math.ceil((msg.rank_eta ?? 60) as number)
+          onStatus(`Queue: position ${msg.rank ?? '?'} · ~${eta}s wait`)
+          onPct(3)
+          break
+        }
+        case 'process_starts':
+          onStatus(`${space.name} is generating your video…`)
+          onPct(8)
+          break
+
+        case 'process_generating': {
+          const pd = msg.progress_data?.[0]
+          if (pd?.length) {
+            const p = Math.round((pd.index / pd.length) * 80) + 10
+            onPct(p)
+            onStatus(`Generating frame ${pd.index} / ${pd.length}…`)
+          } else {
+            onStatus('Generating video frames…')
+            onPct(50)
+          }
+          break
+        }
+        case 'process_completed': {
+          if (!msg.success || msg.output?.error) {
+            fail(String(msg.output?.error ?? 'Generation failed'))
+            return
+          }
+          onStatus('Downloading video…')
+          onPct(95)
+
+          // Extract video URL — Gradio returns several possible shapes
+          const out = msg.output?.data?.[0]
+          let videoUrl: string | null = null
+
+          if (typeof out === 'string') {
+            videoUrl = out.startsWith('http') ? out : `${space.url}${out}`
+          } else if (out?.url) {
+            const u = String(out.url)
+            videoUrl = u.startsWith('http') ? u : `${space.url}${u}`
+          } else if (out?.name || out?.path) {
+            const p = String(out.name ?? out.path)
+            videoUrl = p.startsWith('http') ? p : `${space.url}/file=${p}`
+          } else if (out?.value?.url) {
+            const u = String(out.value.url)
+            videoUrl = u.startsWith('http') ? u : `${space.url}${u}`
+          }
+
+          if (!videoUrl) {
+            fail(`No video URL in response: ${JSON.stringify(out).slice(0, 200)}`)
+            return
+          }
+
+          fetch(videoUrl)
+            .then(r => r.ok ? r.blob() : Promise.reject(new Error(`Download ${r.status}`)))
+            .then(b => b.size > 500 ? succeed(b) : fail('Empty video blob'))
+            .catch(e => fail(e.message))
+          break
+        }
+      }
+    })
+
+    es.onerror = () => { if (!done) fail('SSE connection lost') }
   })
 }
 
-function loadImgFromFile(file: File): Promise<HTMLImageElement> {
+/** Try spaces list in order, return first working result */
+async function generateWithSpaces(
+  spaces: SpaceDef[],
+  inputs: (space: SpaceDef) => unknown[],
+  onStatus: (s: string) => void,
+  onPct: (n: number) => void,
+  cancelRef: { current: boolean },
+): Promise<Blob> {
+  let lastErr = ''
+  for (let i = 0; i < spaces.length; i++) {
+    const space = spaces[i]
+    if (cancelRef.current) throw new Error('Cancelled')
+    try {
+      onStatus(`Connecting to ${space.name}…`)
+      onPct(1)
+      const blob = await tryGradioSpace(space, inputs(space), onStatus, onPct, cancelRef)
+      if (blob.size > 500) return blob
+      throw new Error('Empty video')
+    } catch (e: any) {
+      if (e.message === 'Cancelled' || cancelRef.current) throw new Error('Cancelled')
+      lastErr = e.message
+      console.warn(`[${space.name}] failed: ${lastErr}`)
+      if (i < spaces.length - 1) {
+        onStatus(`${space.name} unavailable — trying ${spaces[i + 1].name}…`)
+        await sleep(1500)
+      }
+    }
+  }
+  throw new Error(`All AI servers busy. Last error: ${lastErr}`)
+}
+
+/** Convert File to base64 data URL */
+function fileToBase64(file: File): Promise<string> {
   return new Promise((res, rej) => {
     const r = new FileReader()
-    r.onload  = e => {
-      const img = new Image()
-      img.onload  = () => res(img)
-      img.onerror = () => rej(new Error('Cannot decode image file'))
-      img.src = e.target!.result as string
-    }
-    r.onerror = () => rej(new Error('Cannot read file'))
+    r.onload = e => res(e.target!.result as string)
+    r.onerror = () => rej(new Error('File read error'))
     r.readAsDataURL(file)
   })
 }
 
-/**
- * Renders the image with smooth motion onto an off-screen canvas,
- * records via MediaRecorder → returns a real playable WebM blob.
- */
-function makeVideo(
-  img: HTMLImageElement,
-  motion: Motion,
-  durSec: Duration,
-  onPct: (n: number) => void,
-): Promise<Blob> {
-  const canvas = document.createElement('canvas')
-  canvas.width = VW; canvas.height = VH
-  const ctx = canvas.getContext('2d')!
-
-  const stream = canvas.captureStream(FPS)
-  const mime = (
-    ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
-      .find(m => MediaRecorder.isTypeSupported(m))
-  ) ?? 'video/webm'
-
-  const rec    = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5_000_000 })
-  const chunks: BlobPart[] = []
-  rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data) }
-
-  return new Promise((resolve, reject) => {
-    rec.onstop  = () => resolve(new Blob(chunks, { type: mime }))
-    rec.onerror = reject
-
-    const totalMs    = durSec * 1000
-    const msPerFrame = 1000 / FPS
-    let lastFrame    = -1
-    const startTime  = performance.now()
-
-    rec.start(100)
-    drawFrame(ctx, img, 0, motion) // first frame
-
-    function tick() {
-      const elapsed = performance.now() - startTime
-
-      if (elapsed >= totalMs) {
-        drawFrame(ctx, img, 1, motion)
-        onPct(100)
-        setTimeout(() => rec.stop(), 400)
-        return
-      }
-
-      const targetFrame = Math.floor(elapsed / msPerFrame)
-      if (targetFrame > lastFrame) {
-        lastFrame = targetFrame
-        const t = Math.min(elapsed / totalMs, 1)
-        drawFrame(ctx, img, t, motion)
-        onPct(Math.round(t * 100))
-      }
-
-      requestAnimationFrame(tick)
-    }
-
-    requestAnimationFrame(tick)
-  })
-}
-
-/* ─── history ───────────────────────────────────────────────────── */
+/* ─── history ────────────────────────────────────────────────────── */
 interface HistItem { id: string; url: string; label: string }
 
 /* ══════════════════════════════════════════════════════════════════ */
 export default function GeneratePage() {
   const [tab, setTab] = useState<Tab>('txt2vid')
 
-  /* img2vid */
-  const [imgFile,    setImgFile]    = useState<File | null>(null)
-  const [imgPreview, setImgPreview] = useState<string>('')
-
   /* txt2vid */
   const [txtPrompt, setTxtPrompt] = useState('')
 
-  /* shared video settings */
-  const [motion,   setMotion]   = useState<Motion>('cinematic')
-  const [duration, setDuration] = useState<Duration>(6)
+  /* img2vid */
+  const [imgFile,    setImgFile]    = useState<File | null>(null)
+  const [imgPreview, setImgPreview] = useState<string>('')
+  const [imgPrompt,  setImgPrompt]  = useState('')
 
   /* generation */
   const [generating, setGenerating] = useState(false)
   const [pct,        setPct]        = useState(0)
-  const [genLabel,   setGenLabel]   = useState('')
+  const [status,     setStatus]     = useState('')
   const [videoUrl,   setVideoUrl]   = useState('')
+  const [videoType,  setVideoType]  = useState('')
   const [vidError,   setVidError]   = useState('')
   const [history,    setHistory]    = useState<HistItem[]>([])
 
@@ -192,9 +274,9 @@ export default function GeneratePage() {
   const [audioPlaying, setAudioPlaying] = useState(false)
   const [audioVoices,  setAudioVoices]  = useState<SpeechSynthesisVoice[]>([])
 
-  const cancelRef  = useRef(false)
-  const genRef     = useRef(false)
-  const blobUrls   = useRef<string[]>([])
+  const cancelRef = useRef(false)
+  const genRef    = useRef(false)
+  const blobUrls  = useRef<string[]>([])
 
   /* TTS voices */
   useEffect(() => {
@@ -207,14 +289,12 @@ export default function GeneratePage() {
     return () => { window.speechSynthesis.onvoiceschanged = null }
   }, [])
 
-  /* cleanup on unmount */
-  useEffect(() => () => {
-    blobUrls.current.forEach(u => URL.revokeObjectURL(u))
-  }, [])
+  /* cleanup blob URLs */
+  useEffect(() => () => { blobUrls.current.forEach(u => URL.revokeObjectURL(u)) }, [])
 
-  /* image file handler */
+  /* image upload */
   const handleImgFile = useCallback((file: File) => {
-    if (!file.type.startsWith('image/')) { toast.error('Please upload an image (JPG, PNG, etc.)'); return }
+    if (!file.type.startsWith('image/')) { toast.error('Please upload an image file'); return }
     if (imgPreview) URL.revokeObjectURL(imgPreview)
     setImgFile(file)
     setImgPreview(URL.createObjectURL(file))
@@ -226,10 +306,10 @@ export default function GeneratePage() {
     genRef.current    = false
     setGenerating(false)
     setPct(0)
-    setGenLabel('')
+    setStatus('')
   }, [])
 
-  /* generate */
+  /* ── GENERATE ─────────────────────────────────────────────────── */
   const generate = useCallback(async () => {
     if (genRef.current) return
     const isImg = tab === 'img2vid'
@@ -240,81 +320,73 @@ export default function GeneratePage() {
     genRef.current    = true
     setGenerating(true)
     setPct(0)
+    setStatus('')
     setVidError('')
     setVideoUrl('')
+    setVideoType('')
 
     try {
-      let img: HTMLImageElement
+      let blob: Blob
 
       if (isImg) {
-        setGenLabel('Loading image…')
-        setPct(5)
-        img = await loadImgFromFile(imgFile!)
+        /* ── Image → Video via Stable Video Diffusion space ── */
+        setStatus('Reading image…')
+        setPct(2)
+        const imgB64 = await fileToBase64(imgFile!)
         if (cancelRef.current) return
-        setPct(15)
-      } else {
-        setGenLabel('Generating AI image from prompt…')
-        setPct(5)
 
-        const seed = Date.now()
-        const res = await fetch(
-          `/api/frame?prompt=${encodeURIComponent(txtPrompt.trim())}&seed=${seed}&idx=0`
+        blob = await generateWithSpaces(
+          I2V_SPACES,
+          (space) => space.inputs(imgB64),
+          (s) => { if (!cancelRef.current) setStatus(s) },
+          (p) => { if (!cancelRef.current) setPct(p) },
+          cancelRef,
         )
-        if (!res.ok) throw new Error(`AI image generation failed (${res.status})`)
-        if (cancelRef.current) return
-
-        const blob = await res.blob()
-        if (blob.size === 0) throw new Error('AI image returned empty — please try again')
-
-        setPct(20)
-        setGenLabel('Animating…')
-
-        const blobUrl = URL.createObjectURL(blob)
-        blobUrls.current.push(blobUrl)
-        img = await loadImgFromURL(blobUrl)
-        if (cancelRef.current) return
+        setVideoType('Image to Video')
+      } else {
+        /* ── Text → Video via CogVideoX / ZeroScope space ── */
+        blob = await generateWithSpaces(
+          T2V_SPACES,
+          (space) => space.inputs(txtPrompt.trim()),
+          (s) => { if (!cancelRef.current) setStatus(s) },
+          (p) => { if (!cancelRef.current) setPct(p) },
+          cancelRef,
+        )
+        setVideoType('Text to Video')
       }
-
-      setPct(isImg ? 5 : 22)
-      setGenLabel('Creating video…')
-
-      const videoBlob = await makeVideo(img, motion, duration, p => {
-        if (!cancelRef.current) setPct(isImg ? p : Math.round(22 + p * 0.78))
-      })
 
       if (cancelRef.current) return
 
-      if (videoBlob.size < 500) {
-        throw new Error('Video generation produced an empty file — try a different browser or motion style')
-      }
-
-      const url = URL.createObjectURL(videoBlob)
+      const url = URL.createObjectURL(blob)
       blobUrls.current.push(url)
       setVideoUrl(url)
+      setPct(100)
+      setStatus('')
 
       const label = isImg
         ? (imgFile?.name?.replace(/\.[^.]+$/, '') ?? 'Uploaded image')
         : txtPrompt.trim().slice(0, 40)
-
       setHistory(h => [{ id: Date.now().toString(), url, label }, ...h].slice(0, 8))
-      setPct(100)
-      setGenLabel('')
-      toast.success('Video ready! 🎬')
+      toast.success('AI video ready! 🎬')
 
     } catch (err: any) {
-      if (!cancelRef.current) setVidError(err.message ?? 'Generation failed. Please try again.')
+      if (!cancelRef.current) {
+        setVidError(err.message ?? 'Generation failed. Please try again.')
+      }
     } finally {
       genRef.current = false
-      if (!cancelRef.current) setGenerating(false)
+      if (!cancelRef.current) {
+        setGenerating(false)
+      }
     }
-  }, [tab, imgFile, txtPrompt, motion, duration])
+  }, [tab, imgFile, imgPrompt, txtPrompt])
 
   /* download */
   const download = useCallback(() => {
     if (!videoUrl) return
     const a = document.createElement('a')
     a.href = videoUrl
-    a.download = `pyxis-video-${Date.now()}.webm`
+    a.download = `pyxis-ai-video-${Date.now()}.mp4`
     document.body.appendChild(a); a.click(); document.body.removeChild(a)
     toast.success('Video downloaded!')
   }, [videoUrl])
@@ -333,6 +405,15 @@ export default function GeneratePage() {
   }
   const stopAudio = () => { window.speechSynthesis.cancel(); setAudioPlaying(false) }
 
+  const EXAMPLES = [
+    'ocean waves crashing at sunset',
+    'golden retriever running on a beach',
+    'cherry blossoms falling in the wind',
+    'campfire burning at night in forest',
+    'timelapse clouds over mountains',
+    'city skyline at dusk with lights',
+  ]
+
   const canGenerate = tab === 'img2vid' ? !!imgFile : tab === 'txt2vid' ? !!txtPrompt.trim() : false
 
   /* ══════════════ RENDER ══════════════ */
@@ -346,16 +427,16 @@ export default function GeneratePage() {
         </div>
         <div>
           <h1 className="text-base font-bold text-text-primary">AI Video Studio</h1>
-          <p className="text-[11px] text-text-secondary">Generate real videos from images or text — 100% free</p>
+          <p className="text-[11px] text-text-secondary">Real AI video generation — free, no account needed</p>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="border-b border-border px-4 flex shrink-0">
         {([
+          { id: 'txt2vid' as Tab, label: 'Text to Video', Icon: Film      },
           { id: 'img2vid' as Tab, label: 'Image to Video', Icon: ImageIcon },
-          { id: 'txt2vid' as Tab, label: 'Text to Video',  Icon: Film      },
-          { id: 'audio'   as Tab, label: 'Audio TTS',      Icon: Music     },
+          { id: 'audio'   as Tab, label: 'Audio TTS',     Icon: Music     },
         ] as const).map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -372,11 +453,23 @@ export default function GeneratePage() {
       </div>
 
       {/* ══ VIDEO TABS ══ */}
-      {(tab === 'img2vid' || tab === 'txt2vid') && (
+      {(tab === 'txt2vid' || tab === 'img2vid') && (
         <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 112px)' }}>
 
           {/* Left: Controls */}
           <div className="w-[360px] shrink-0 border-r border-border overflow-y-auto p-5 space-y-5">
+
+            {/* AI model info */}
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-violet-500/5 border border-violet-500/20">
+              <Sparkles size={13} className="text-violet-400 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-text-secondary leading-relaxed">
+                {tab === 'txt2vid'
+                  ? <><strong className="text-violet-400">Real AI motion video</strong> via CogVideoX · ZeroScope · AnimateDiff — actual frames generated by AI, not animated images.</>
+                  : <><strong className="text-violet-400">AI Image-to-Video</strong> via Stable Video Diffusion — AI predicts realistic motion from your image.</>
+                }
+                {' '}<span className="text-text-tertiary">May take 1–5 min (free GPU queue).</span>
+              </p>
+            </div>
 
             {/* Image upload (img2vid only) */}
             {tab === 'img2vid' && (
@@ -407,7 +500,7 @@ export default function GeneratePage() {
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-text-tertiary select-none">
                       <Upload size={22} />
                       <p className="text-sm font-medium">Upload / Drop Image</p>
-                      <p className="text-xs opacity-60">JPG · PNG · WebP up to 10 MB</p>
+                      <p className="text-xs opacity-60">JPG · PNG · WebP</p>
                     </div>
                   )}
                 </div>
@@ -418,25 +511,29 @@ export default function GeneratePage() {
               </div>
             )}
 
-            {/* Prompt */}
+            {/* Prompt (txt2vid required, img2vid optional) */}
             <div>
               <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-2">
-                {tab === 'txt2vid' ? 'Prompt' : 'Prompt (Optional)'}
+                {tab === 'txt2vid' ? 'Prompt' : 'Motion Prompt (Optional)'}
               </label>
               <textarea
-                value={tab === 'txt2vid' ? txtPrompt : ''}
+                value={tab === 'txt2vid' ? txtPrompt : imgPrompt}
                 onChange={e => {
-                  const v = e.target.value.slice(0, 200)
-                  if (tab === 'txt2vid') setTxtPrompt(v)
+                  const v = e.target.value.slice(0, 300)
+                  tab === 'txt2vid' ? setTxtPrompt(v) : setImgPrompt(v)
                 }}
                 onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate() }}
-                placeholder={tab === 'txt2vid' ? 'Describe what you want to see…' : 'Optional: describe motion or mood…'}
+                placeholder={
+                  tab === 'txt2vid'
+                    ? 'e.g. "a golden retriever running on a beach, cinematic, 4K"'
+                    : 'Optional: describe the motion you want…'
+                }
                 rows={4}
                 className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none focus:border-accent transition-colors"
               />
               {tab === 'txt2vid' && (
                 <>
-                  <p className="text-[10px] text-text-tertiary text-right mt-0.5">{txtPrompt.length} / 200</p>
+                  <p className="text-[10px] text-text-tertiary text-right mt-0.5">{txtPrompt.length} / 300</p>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {EXAMPLES.map(ex => (
                       <button
@@ -451,46 +548,19 @@ export default function GeneratePage() {
               )}
             </div>
 
-            {/* Motion Style */}
-            <div>
-              <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-2">
-                Motion Style
-              </label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {MOTIONS.map(({ id, label, Icon }) => (
-                  <button
-                    key={id} onClick={() => setMotion(id)}
-                    className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl border text-xs font-medium transition-all ${
-                      motion === id
-                        ? 'border-accent bg-accent/10 text-accent'
-                        : 'border-border text-text-secondary hover:border-accent/40 hover:text-text-primary'
-                    }`}
-                  >
-                    <Icon size={14} />{label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div>
-              <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-2">
-                Duration
-              </label>
-              <div className="flex gap-2">
-                {([6, 10, 15] as Duration[]).map(d => (
-                  <button
-                    key={d} onClick={() => setDuration(d)}
-                    className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-all ${
-                      duration === d
-                        ? 'border-accent bg-accent/10 text-accent'
-                        : 'border-border text-text-secondary hover:border-accent/40'
-                    }`}
-                  >
-                    {d}s
-                  </button>
-                ))}
-              </div>
+            {/* What to expect */}
+            <div className="px-3 py-2.5 rounded-xl bg-surface border border-border space-y-1.5">
+              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">What to expect</p>
+              {[
+                '~1–5 min wait (free GPU queue)',
+                'Real AI frames with actual motion',
+                tab === 'txt2vid' ? 'Output: short MP4 clip (2–6 sec)' : 'Output: short video from your image',
+                'No account or credit card needed',
+              ].map(t => (
+                <p key={t} className="text-[11px] text-text-tertiary flex items-center gap-1.5">
+                  <span className="text-green-400">✓</span>{t}
+                </p>
+              ))}
             </div>
 
             {/* Generate / Cancel */}
@@ -499,7 +569,7 @@ export default function GeneratePage() {
                 onClick={generate} disabled={!canGenerate}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white text-sm font-semibold disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-lg"
               >
-                <Video size={16} />Generate
+                <Video size={16} />Generate AI Video
               </button>
             ) : (
               <button
@@ -509,16 +579,11 @@ export default function GeneratePage() {
                 <X size={16} />Cancel
               </button>
             )}
-
-            <p className="text-[10px] text-text-tertiary text-center">
-              720p · WebM · plays in VLC, Chrome, Firefox
-            </p>
           </div>
 
           {/* Right: Preview */}
           <div className="flex-1 flex flex-col overflow-hidden bg-[#0d0d0d]">
 
-            {/* Main preview */}
             <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-hidden">
 
               {/* Idle */}
@@ -527,7 +592,7 @@ export default function GeneratePage() {
                   <Video size={52} className="text-white/10 mx-auto" />
                   <p className="text-white/50 text-xl font-medium">Bring your ideas to life.</p>
                   <p className="text-white/25 text-sm">
-                    {tab === 'img2vid' ? 'Upload an image to start creating.' : 'Enter a prompt to start creating.'}
+                    {tab === 'img2vid' ? 'Upload an image to animate with AI.' : 'Enter a prompt to generate a real AI video.'}
                   </p>
                 </div>
               )}
@@ -539,23 +604,31 @@ export default function GeneratePage() {
                     {pct}<span className="text-4xl text-white/40 ml-1">%</span>
                   </div>
                   <p className="text-white text-lg font-semibold">Generation in Progress</p>
-                  <p className="text-white/40 text-sm min-h-[1.25rem]">{genLabel}</p>
+                  <p className="text-white/50 text-sm min-h-[1.5rem] px-4 text-center leading-snug">{status}</p>
                   <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all duration-200"
+                      className="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all duration-500"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
+                  <p className="text-white/20 text-xs">
+                    Free GPU queue — first-time generation may take a few minutes
+                  </p>
                 </div>
               )}
 
               {/* Error */}
               {!generating && vidError && (
-                <div className="text-center space-y-3 max-w-sm">
-                  <p className="text-red-400 text-sm leading-relaxed">{vidError}</p>
+                <div className="text-center space-y-4 max-w-md px-4">
+                  <AlertCircle size={36} className="text-red-400 mx-auto" />
+                  <p className="text-white/70 text-base font-medium">Generation Failed</p>
+                  <p className="text-red-400/80 text-sm leading-relaxed">{vidError}</p>
+                  <p className="text-white/30 text-xs leading-relaxed">
+                    The free AI servers may be overloaded. Try again in a few minutes — it usually works on the next attempt.
+                  </p>
                   <button
                     onClick={() => { setVidError(''); generate() }}
-                    className="px-4 py-2 rounded-lg bg-accent/20 text-accent text-sm font-medium hover:bg-accent/30"
+                    className="px-5 py-2.5 rounded-xl bg-violet-500/20 border border-violet-500/40 text-violet-300 text-sm font-medium hover:bg-violet-500/30 transition-colors"
                   >
                     Try Again
                   </button>
@@ -566,12 +639,8 @@ export default function GeneratePage() {
               {!generating && videoUrl && !vidError && (
                 <div className="w-full max-w-2xl space-y-4">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-white">
-                      {tab === 'img2vid' ? 'Image to Video' : 'Text to Video'}
-                    </span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/10 text-white/60">720p</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/10 text-white/60">{duration}s</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/10 text-white/60 capitalize">{motion}</span>
+                    <span className="text-sm font-semibold text-white">{videoType}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/10 text-white/60">AI Generated</span>
                   </div>
 
                   <div className="rounded-2xl overflow-hidden bg-black aspect-video border border-white/10">
@@ -585,7 +654,7 @@ export default function GeneratePage() {
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() => { setVideoUrl(''); setPct(0) }}
+                      onClick={() => { setVideoUrl(''); setPct(0); setVideoType('') }}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 text-xs font-medium transition-colors"
                     >
                       <RefreshCw size={12} />Regenerate
@@ -594,7 +663,7 @@ export default function GeneratePage() {
                       onClick={download}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/20 border border-violet-500/40 text-violet-300 hover:bg-violet-500/30 text-xs font-medium transition-colors"
                     >
-                      <Download size={12} />Download .webm
+                      <Download size={12} />Download Video
                     </button>
                   </div>
                 </div>
@@ -637,11 +706,8 @@ export default function GeneratePage() {
               Chrome Desktop has the best voices.
             </p>
           </div>
-
           <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
-              Text to Speak
-            </label>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Text to Speak</label>
             <textarea
               value={audioText} onChange={e => setAudioText(e.target.value)}
               placeholder="Enter any text you want to convert to speech…" rows={7}
@@ -649,38 +715,27 @@ export default function GeneratePage() {
             />
             <p className="text-[11px] text-text-tertiary mt-1">{audioText.length} characters</p>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Voice</label>
-              <select
-                value={audioVoice} onChange={e => setAudioVoice(Number(e.target.value))}
-                className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-text-primary outline-none focus:border-accent"
-              >
+              <select value={audioVoice} onChange={e => setAudioVoice(Number(e.target.value))}
+                className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-text-primary outline-none focus:border-accent">
                 {audioVoices.length > 0
                   ? audioVoices.map((v, i) => <option key={i} value={i}>{v.name}</option>)
                   : <option>Loading voices…</option>}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
-                Speed: {audioRate}x
-              </label>
-              <input type="range" min="0.5" max="2" step="0.1"
-                value={audioRate} onChange={e => setAudioRate(Number(e.target.value))}
-                className="w-full accent-accent mt-3" />
+              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Speed: {audioRate}x</label>
+              <input type="range" min="0.5" max="2" step="0.1" value={audioRate}
+                onChange={e => setAudioRate(Number(e.target.value))} className="w-full accent-accent mt-3" />
             </div>
           </div>
-
           <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
-              Pitch: {audioPitch.toFixed(1)}
-            </label>
-            <input type="range" min="0.5" max="2" step="0.1"
-              value={audioPitch} onChange={e => setAudioPitch(Number(e.target.value))}
-              className="w-full accent-accent" />
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Pitch: {audioPitch.toFixed(1)}</label>
+            <input type="range" min="0.5" max="2" step="0.1" value={audioPitch}
+              onChange={e => setAudioPitch(Number(e.target.value))} className="w-full accent-accent" />
           </div>
-
           <div className="flex gap-3">
             {audioPlaying ? (
               <button onClick={stopAudio}
