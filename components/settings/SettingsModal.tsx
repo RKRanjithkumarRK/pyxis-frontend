@@ -45,14 +45,14 @@ export default function SettingsModal({ onClose }: Props) {
   const tabTitle = tabs.find(t => t.id === activeTab)?.label || ''
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-6">
       <div
-        className="bg-sidebar rounded-2xl shadow-2xl w-full max-w-[700px] h-[80vh] max-h-[600px] flex overflow-hidden border border-border/50"
-        onClick={e => e.stopPropagation()}
+        className="flex h-[min(92dvh,780px)] w-full max-w-[960px] flex-col overflow-hidden rounded-[28px] border border-border/50 bg-sidebar shadow-2xl sm:h-[80vh] sm:max-h-[680px] sm:flex-row"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Left nav */}
-        <nav className="w-[200px] shrink-0 flex flex-col py-4 border-r border-border/50">
-          <div className="flex items-center justify-between px-4 mb-2">
+        <nav className="flex w-full shrink-0 flex-col border-b border-border/50 py-3 sm:w-[220px] sm:border-b-0 sm:border-r sm:py-4">
+          <div className="mb-2 flex items-center justify-between px-4">
+            <p className="text-sm font-semibold text-text-primary sm:hidden">Settings</p>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-colors"
@@ -60,8 +60,8 @@ export default function SettingsModal({ onClose }: Props) {
               <X size={18} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-2 space-y-0.5">
-            {tabs.map(tab => {
+          <div className="flex-1 overflow-y-auto px-2 max-sm:grid max-sm:grid-cols-2 max-sm:gap-1 sm:space-y-0.5">
+            {tabs.map((tab) => {
               const Icon = tab.icon
               return (
                 <button
@@ -81,12 +81,11 @@ export default function SettingsModal({ onClose }: Props) {
           </div>
         </nav>
 
-        {/* Right content */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="px-6 py-5 border-b border-border/50">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="border-b border-border/50 px-5 py-4 sm:px-6 sm:py-5">
             <h2 className="text-lg font-semibold text-text-primary">{tabTitle}</h2>
           </div>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
             {renderContent()}
           </div>
         </div>

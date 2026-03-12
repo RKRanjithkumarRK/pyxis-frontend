@@ -54,11 +54,16 @@ body {
   height: 100%;
   min-height: 100dvh;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
   background: var(--bg);
   color: var(--text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   overscroll-behavior: none;
 }
@@ -90,6 +95,21 @@ a,
 [role='button'] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img,
+svg,
+canvas,
+video {
+  display: block;
+  max-width: 100%;
 }
 
 .overflow-y-auto,
@@ -153,6 +173,7 @@ pre,
 
 html.light .panel {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 248, 255, 0.88));
+  box-shadow: 0 24px 80px rgba(117, 138, 181, 0.18);
 }
 
 .glass-panel {
@@ -322,3 +343,43 @@ html.light .markdown-body :not(pre) > code {
 .kb2 { animation: kb2 var(--kb-dur,2s) ease-in-out forwards; }
 .kb3 { animation: kb3 var(--kb-dur,2s) ease-in-out forwards; }
 .kb4 { animation: kb4 var(--kb-dur,2s) ease-in-out forwards; }
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .panel,
+  .glass-panel,
+  .pill {
+    backdrop-filter: none;
+    background: rgba(12, 20, 36, 0.98);
+  }
+
+  html.light .panel,
+  html.light .glass-panel,
+  html.light .pill {
+    background: rgba(255, 255, 255, 0.98);
+  }
+}
+
+@media (max-width: 768px) {
+  html,
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

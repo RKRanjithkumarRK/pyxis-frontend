@@ -17,22 +17,36 @@ export default function VoiceWaveform({ active }: Props) {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = 300 * dpr
-    canvas.height = 80 * dpr
-    ctx.scale(dpr, dpr)
+    const cssHeight = 80
+    const getCssWidth = () => {
+      const parentWidth = canvas.parentElement?.clientWidth ?? 300
+      return Math.max(180, Math.min(parentWidth, 300))
+    }
+
+    const resizeCanvas = () => {
+      const cssWidth = getCssWidth()
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = cssWidth * dpr
+      canvas.height = cssHeight * dpr
+      canvas.style.width = `${cssWidth}px`
+      canvas.style.height = `${cssHeight}px`
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      return { cssWidth, cssHeight }
+    }
+
+    let dimensions = resizeCanvas()
 
     const animate = () => {
-      ctx.clearRect(0, 0, 300, 80)
+      const { cssWidth, cssHeight: height } = dimensions
+      ctx.clearRect(0, 0, cssWidth, height)
 
       const bars = barsRef.current
       const barWidth = 4
       const gap = 3
       const totalWidth = bars.length * (barWidth + gap)
-      const startX = (300 - totalWidth) / 2
+      const startX = (cssWidth - totalWidth) / 2
 
       for (let i = 0; i < bars.length; i++) {
-        // Generate organic-looking heights
         if (active) {
           const target = Math.random() * 50 + 10
           bars[i] = bars[i] + (target - bars[i]) * 0.3
@@ -42,9 +56,7 @@ export default function VoiceWaveform({ active }: Props) {
 
         const height = Math.max(bars[i], 3)
         const x = startX + i * (barWidth + gap)
-        const y = (80 - height) / 2
-
-        // Gradient color based on position
+        const y = (dimensions.cssHeight - height) / 2
         const progress = i / bars.length
         const r = Math.round(16 + progress * 0)
         const g = Math.round(163 - progress * 50)
@@ -59,15 +71,32 @@ export default function VoiceWaveform({ active }: Props) {
       animRef.current = requestAnimationFrame(animate)
     }
 
+    const handleResize = () => {
+      dimensions = resizeCanvas()
+    }
+
+    let resizeObserver: ResizeObserver | null = null
+    if ('ResizeObserver' in window && canvas.parentElement) {
+      resizeObserver = new ResizeObserver(() => {
+        handleResize()
+      })
+      resizeObserver.observe(canvas.parentElement)
+    }
+
+    window.addEventListener('resize', handleResize)
     animate()
-    return () => cancelAnimationFrame(animRef.current)
+    return () => {
+      cancelAnimationFrame(animRef.current)
+      window.removeEventListener('resize', handleResize)
+      resizeObserver?.disconnect()
+    }
   }, [active])
 
   return (
     <canvas
       ref={canvasRef}
-      className="w-[300px] h-[80px]"
-      style={{ width: 300, height: 80 }}
+      className="h-[80px] w-full max-w-[300px]"
+      style={{ height: 80 }}
     />
   )
 }

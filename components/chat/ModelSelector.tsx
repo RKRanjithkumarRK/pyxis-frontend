@@ -72,7 +72,7 @@ export default function ModelSelector() {
   const premiumModels = models.filter(m => !m.free)
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative max-w-full">
       {/* Trigger button */}
       <button
         onClick={() => setOpen(!open)}
@@ -97,7 +97,7 @@ export default function ModelSelector() {
       {open && (
         <div
           role="listbox"
-          className="absolute top-full left-0 mt-2 w-[340px] bg-surface border border-border rounded-2xl shadow-2xl shadow-black/20 py-2 z-50 max-h-[75vh] overflow-y-auto"
+          className="absolute top-full left-0 z-50 mt-2 w-[calc(100vw-1.5rem)] max-w-[340px] overflow-y-auto rounded-2xl border border-border bg-surface py-2 shadow-2xl shadow-black/20 max-h-[75vh] sm:w-[340px]"
         >
           {/* Free section */}
           <div className="px-4 pt-2 pb-1.5 flex items-center gap-1.5">

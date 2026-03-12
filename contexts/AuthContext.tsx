@@ -2,10 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import {
+  browserLocalPersistence,
+  inMemoryPersistence,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  setPersistence,
   signInWithPopup,
+  signInWithRedirect,
   signInAnonymously as firebaseSignInAnonymously,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
@@ -27,35 +31,68 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
+const REDIRECT_FALLBACK_ERRORS = new Set([
+  'auth/popup-blocked',
+  'auth/popup-closed-by-user',
+  'auth/cancelled-popup-request',
+  'auth/operation-not-supported-in-this-environment',
+])
+
+function prefersRedirectAuth() {
+  if (typeof window === 'undefined') return false
+  const userAgent = window.navigator.userAgent || ''
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|CriOS|FxiOS/i.test(userAgent)
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser)
-      setLoading(false)
-      if (firebaseUser) {
+    let mounted = true
+    let unsubscribe = () => {}
+
+    const bootstrapAuth = async () => {
+      try {
+        await setPersistence(auth, browserLocalPersistence)
+      } catch {
         try {
-          const userRef = doc(db, 'users', firebaseUser.uid)
-          const userSnap = await getDoc(userRef)
-          if (!userSnap.exists()) {
-            await setDoc(userRef, {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName || '',
-              photoURL: firebaseUser.photoURL || '',
-              createdAt: new Date().toISOString(),
-            })
-          }
-        } catch (err) {
-          // Non-critical: Firestore user doc sync failed (e.g. permission rules)
-          console.warn('Firestore user profile sync skipped:', err)
-        }
+          await setPersistence(auth, inMemoryPersistence)
+        } catch {}
       }
-    })
-    return () => unsubscribe()
+
+      if (!mounted) return
+
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        setUser(firebaseUser)
+        setLoading(false)
+        if (firebaseUser) {
+          try {
+            const userRef = doc(db, 'users', firebaseUser.uid)
+            const userSnap = await getDoc(userRef)
+            if (!userSnap.exists()) {
+              await setDoc(userRef, {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName || '',
+                photoURL: firebaseUser.photoURL || '',
+                createdAt: new Date().toISOString(),
+              })
+            }
+          } catch (err) {
+            // Non-critical: Firestore user doc sync failed (e.g. permission rules)
+            console.warn('Firestore user profile sync skipped:', err)
+          }
+        }
+      })
+    }
+
+    bootstrapAuth()
+
+    return () => {
+      mounted = false
+      unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {
@@ -69,7 +106,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider()
-    await signInWithPopup(auth, provider)
+    if (prefersRedirectAuth()) {
+      await signInWithRedirect(auth, provider)
+      return
+    }
+
+    try {
+      await signInWithPopup(auth, provider)
+    } catch (err: any) {
+      if (REDIRECT_FALLBACK_ERRORS.has(err?.code) || /popup|redirect/i.test(String(err?.message || ''))) {
+        await signInWithRedirect(auth, provider)
+        return
+      }
+      throw err
+    }
   }
 
   const signInAsGuest = async () => {

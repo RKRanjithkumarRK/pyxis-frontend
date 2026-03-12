@@ -24,11 +24,11 @@ export default function Sidebar() {
       <aside
         className={`sidebar-transition flex flex-col overflow-hidden ${
           isOpen
-            ? 'w-[304px] max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:h-full'
+            ? 'w-[304px] max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:h-full max-md:max-w-[calc(100vw-0.75rem)] max-md:pb-safe max-md:pl-safe'
             : 'w-0'
         } md:relative md:shrink-0 md:h-full`}
       >
-        <div className="h-full p-3 md:p-4">
+        <div className="h-full p-2 sm:p-3 md:p-4">
           <div className="panel relative flex h-full flex-col overflow-hidden rounded-[30px] border border-border/80">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(97,211,255,0.08),transparent_35%),radial-gradient(circle_at_bottom,rgba(99,102,241,0.08),transparent_38%)]" />
             <div className="relative flex h-full flex-col">
