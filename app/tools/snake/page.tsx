@@ -166,7 +166,7 @@ export default function SnakePage() {
               <RotateCcw size={14} />
               Restart
             </button>
-            <p className="text-xs text-text-tertiary">Space: pause/resume • R: restart</p>
+            <p className="text-xs text-text-tertiary">Space: pause/resume ï¿½ R: restart</p>
           </div>
 
           {game.isGameOver && (
