@@ -17,7 +17,7 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase-client'
+import { auth, db, firebaseEnabled } from '@/lib/firebase-client'
 
 interface AuthContextType {
   user: FirebaseUser | null
@@ -53,6 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsubscribe = () => {}
 
     const bootstrapAuth = async () => {
+      if (!firebaseEnabled || !auth) {
+        if (mounted) setLoading(false)
+        return
+      }
+
       try {
         await setPersistence(auth, browserLocalPersistence)
       } catch {
@@ -66,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         setUser(firebaseUser)
         setLoading(false)
-        if (firebaseUser) {
+        if (firebaseUser && db) {
           try {
             const userRef = doc(db, 'users', firebaseUser.uid)
             const userSnap = await getDoc(userRef)
@@ -96,15 +101,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
+    if (!auth) throw new Error('Authentication is not configured for this environment.')
     await signInWithEmailAndPassword(auth, email, password)
   }
 
   const signUp = async (email: string, password: string, name: string) => {
+    if (!auth) throw new Error('Authentication is not configured for this environment.')
     const cred = await createUserWithEmailAndPassword(auth, email, password)
     await updateProfile(cred.user, { displayName: name })
   }
 
   const signInWithGoogle = async () => {
+    if (!auth) throw new Error('Authentication is not configured for this environment.')
     const provider = new GoogleAuthProvider()
     if (prefersRedirectAuth()) {
       await signInWithRedirect(auth, provider)
@@ -123,15 +131,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInAsGuest = async () => {
+    if (!auth) throw new Error('Authentication is not configured for this environment.')
     await firebaseSignInAnonymously(auth)
   }
 
   const signOut = async () => {
+    if (!auth) return
     await firebaseSignOut(auth)
   }
 
   const getToken = async () => {
-    if (!auth.currentUser) return null
+    if (!auth?.currentUser) return null
     return auth.currentUser.getIdToken()
   }
 

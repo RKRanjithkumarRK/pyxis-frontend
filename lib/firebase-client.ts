@@ -1,6 +1,6 @@
-import { initializeApp, getApps } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { FirebaseApp, getApps, initializeApp } from 'firebase/app'
+import { Auth, getAuth } from 'firebase/auth'
+import { Firestore, getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,7 +11,19 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-export const auth = getAuth(app)
-export const db = getFirestore(app)
+export const firebaseEnabled = Object.values(firebaseConfig).every(
+  (value) => typeof value === 'string' && value.trim().length > 0
+)
+
+let app: FirebaseApp | null = null
+let auth: Auth | null = null
+let db: Firestore | null = null
+
+if (typeof window !== 'undefined' && firebaseEnabled) {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+  auth = getAuth(app)
+  db = getFirestore(app)
+}
+
+export { app, auth, db }
 export default app

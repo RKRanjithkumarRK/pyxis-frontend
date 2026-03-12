@@ -121,16 +121,17 @@ video {
 
 .scroll-shell {
   scrollbar-gutter: stable both-edges;
+  overscroll-behavior: contain;
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(142, 176, 255, 0.34) transparent;
+  scrollbar-color: rgba(142, 176, 255, 0.48) transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -138,14 +139,14 @@ video {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(142, 176, 255, 0.28);
+  background: rgba(142, 176, 255, 0.48);
   border: 2px solid transparent;
   border-radius: 999px;
   background-clip: padding-box;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(142, 176, 255, 0.42);
+  background: rgba(142, 176, 255, 0.6);
   background-clip: padding-box;
 }
 
@@ -156,6 +157,22 @@ video {
 .mb-safe { margin-bottom: var(--safe-bottom); }
 .h-dvh { height: 100dvh; }
 .min-h-dvh { min-height: 100dvh; }
+
+.app-shell {
+  display: flex;
+  min-height: 100svh;
+  height: 100svh;
+  max-height: 100svh;
+  overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  .app-shell {
+    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+}
 
 @media (pointer: fine) {
   ::-webkit-scrollbar { width: 6px; }

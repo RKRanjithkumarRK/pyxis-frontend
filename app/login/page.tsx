@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import PyxisMark from '@/components/brand/PyxisMark'
 import { useAuth } from '@/contexts/AuthContext'
-import { auth } from '@/lib/firebase-client'
+import { auth, firebaseEnabled } from '@/lib/firebase-client'
 
 const VALUE_PROPS = [
   'Run chat, agents, workflows, search, media, and code from one AI control plane.',
@@ -31,6 +31,7 @@ export default function LoginPage() {
   const [guestLoading, setGuestLoading] = useState(false)
   const router = useRouter()
   const { user, loading: authLoading, signIn, signUp, signInWithGoogle, signInAsGuest } = useAuth()
+  const authUnavailable = !firebaseEnabled || !auth
 
   useEffect(() => {
     if (!authLoading && user) router.push('/hub')
@@ -40,6 +41,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
+      if (authUnavailable) throw new Error('Authentication is not configured for this environment.')
       if (isSignUp) {
         await signUp(email, password, name)
         toast.success('Account created!')
@@ -65,6 +67,7 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     setGoogleLoading(true)
     try {
+      if (authUnavailable) throw new Error('Authentication is not configured for this environment.')
       await signInWithGoogle()
       router.push('/hub')
     } catch (err: any) {
@@ -79,6 +82,7 @@ export default function LoginPage() {
   const handleGuest = async () => {
     setGuestLoading(true)
     try {
+      if (authUnavailable) throw new Error('Authentication is not configured for this environment.')
       await signInAsGuest()
       router.push('/hub')
     } catch (err: any) {
@@ -94,6 +98,7 @@ export default function LoginPage() {
       return
     }
     try {
+      if (!auth) throw new Error('Authentication is not configured for this environment.')
       await sendPasswordResetEmail(auth, email)
       toast.success('Password reset email sent!')
     } catch {
@@ -201,9 +206,14 @@ export default function LoginPage() {
                 </div>
 
                 <div className="mt-6 space-y-3">
+                  {authUnavailable && (
+                    <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                      Authentication is unavailable in this environment until Firebase public keys are configured.
+                    </div>
+                  )}
                   <button
                     onClick={handleGoogle}
-                    disabled={googleLoading || guestLoading}
+                    disabled={authUnavailable || googleLoading || guestLoading}
                     className="flex min-h-[52px] w-full items-center justify-center gap-3 rounded-2xl border border-border-light bg-white px-4 py-3 text-base font-semibold text-slate-950 transition-transform hover:scale-[1.01] disabled:opacity-50"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -217,7 +227,7 @@ export default function LoginPage() {
 
                   <button
                     onClick={handleGuest}
-                    disabled={guestLoading || googleLoading}
+                    disabled={authUnavailable || guestLoading || googleLoading}
                     className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-border bg-transparent px-4 py-3 text-base font-semibold text-text-primary transition-colors hover:bg-surface-hover disabled:opacity-50"
                   >
                     {guestLoading ? (
@@ -252,6 +262,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email address"
                     required
+                    disabled={authUnavailable}
                     className="w-full rounded-2xl border border-border bg-surface px-4 py-3.5 text-base text-text-primary placeholder:text-text-tertiary transition-colors focus:border-border-light"
                   />
                   <input
@@ -261,11 +272,12 @@ export default function LoginPage() {
                     placeholder="Password"
                     required
                     minLength={6}
+                    disabled={authUnavailable}
                     className="w-full rounded-2xl border border-border bg-surface px-4 py-3.5 text-base text-text-primary placeholder:text-text-tertiary transition-colors focus:border-border-light"
                   />
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={authUnavailable || loading}
                     className="w-full rounded-2xl bg-white px-4 py-3.5 text-base font-semibold text-slate-950 transition-transform hover:scale-[1.01] disabled:opacity-50"
                   >
                     {loading ? 'Loading...' : isSignUp ? 'Create account' : 'Continue'}

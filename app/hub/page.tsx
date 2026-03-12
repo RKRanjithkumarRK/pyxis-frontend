@@ -172,19 +172,19 @@ export default function HubPage() {
   }
 
   return (
-    <div className={`px-4 sm:px-6 lg:px-7 xl:px-8 ${compactView ? 'pb-6 pt-3' : 'pb-8 pt-4'}`}>
-      <div className={`mx-auto max-w-[1720px] ${compactView ? 'space-y-4' : 'space-y-6'}`}>
+    <div className={`w-full px-4 sm:px-5 lg:px-6 xl:px-7 2xl:px-8 ${compactView ? 'pb-6 pt-3' : 'pb-8 pt-4'}`}>
+      <div className={`w-full ${compactView ? 'space-y-4' : 'space-y-6'}`}>
         <section className="panel overflow-hidden rounded-[32px]">
-          <div className={`grid xl:grid-cols-[minmax(0,1.2fr)_minmax(380px,0.8fr)] 2xl:grid-cols-[minmax(0,1.26fr)_minmax(400px,0.74fr)] ${compactView ? 'gap-4 p-5 xl:p-6' : 'gap-6 p-6 xl:p-7'}`}>
+          <div className={`grid xl:grid-cols-[minmax(0,1.22fr)_minmax(360px,0.78fr)] 2xl:grid-cols-[minmax(0,1.26fr)_minmax(400px,0.74fr)] ${compactView ? 'gap-4 p-5 xl:p-6' : 'gap-6 p-6 xl:p-7'}`}>
             <div>
               <div className={`pill text-sm text-text-secondary ${compactView ? 'mb-4' : 'mb-5'}`}>
                 <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
                 Control Tower live
               </div>
-              <h1 className={`font-display leading-[0.95] text-text-primary ${compactView ? 'text-[clamp(2.35rem,3.8vw,4.1rem)]' : 'text-[clamp(2.9rem,4.7vw,5rem)]'}`}>
+              <h1 className={`font-display leading-[0.95] text-text-primary ${compactView ? 'text-[clamp(2.15rem,3vw,3.4rem)]' : 'text-[clamp(2.55rem,3.5vw,4.4rem)]'}`}>
                 Welcome to the upgraded <span className="text-gradient">Pyxis One</span> workspace.
               </h1>
-              <p className={`max-w-3xl text-text-secondary lg:max-w-2xl ${compactView ? 'mt-3 text-sm leading-6 sm:text-[15px] sm:leading-7' : 'mt-4 text-[15px] leading-7 sm:text-base sm:leading-8'}`}>
+              <p className={`max-w-4xl text-text-secondary ${compactView ? 'mt-3 text-sm leading-6 sm:text-[15px] sm:leading-7' : 'mt-4 text-[15px] leading-7 sm:text-base sm:leading-8'}`}>
                 This hub is now the front door to a larger AI operating system: an executive-style launch surface for chat, agents, workflows, knowledge, media, and model operations.
               </p>
 
@@ -219,7 +219,7 @@ export default function HubPage() {
           </div>
         </section>
 
-        <section className={`grid xl:grid-cols-[minmax(0,1.08fr)_minmax(340px,0.92fr)] ${compactView ? 'gap-4' : 'gap-5'}`}>
+        <section className={`grid xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)] ${compactView ? 'gap-4' : 'gap-5'}`}>
           <div className={compactView ? 'space-y-4' : 'space-y-6'}>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>

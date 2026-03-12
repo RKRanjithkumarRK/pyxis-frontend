@@ -18,7 +18,7 @@ function VoiceLayoutInner({ children }: { children: React.ReactNode }) {
   if (loading || !user) return null
 
   return (
-    <div className="min-h-[100svh] min-h-[100dvh] flex bg-bg overflow-hidden pb-safe pt-safe">
+    <div className="app-shell bg-bg pb-safe pt-safe">
       <Sidebar />
       <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {children}
