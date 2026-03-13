@@ -4,21 +4,21 @@
 
 :root,
 html.dark {
-  --bg: #06111f;
-  --sidebar: rgba(7, 16, 30, 0.94);
-  --surface: rgba(13, 24, 43, 0.82);
-  --surface-hover: rgba(21, 39, 70, 0.92);
-  --surface-active: rgba(31, 55, 96, 0.96);
-  --border: rgba(123, 156, 255, 0.12);
-  --border-light: rgba(142, 176, 255, 0.22);
-  --accent: #61d3ff;
-  --accent-hover: #2ebeff;
-  --text-primary: #f4f7fb;
-  --text-secondary: #b9c3d9;
-  --text-tertiary: #7f91b2;
+  --bg: #102033;
+  --sidebar: rgba(20, 33, 50, 0.88);
+  --surface: rgba(28, 43, 65, 0.76);
+  --surface-hover: rgba(36, 53, 79, 0.84);
+  --surface-active: rgba(49, 69, 99, 0.9);
+  --border: rgba(148, 174, 214, 0.16);
+  --border-light: rgba(163, 188, 226, 0.3);
+  --accent: #52b4ff;
+  --accent-hover: #2d98ef;
+  --text-primary: #f3f6fb;
+  --text-secondary: #c4cfdf;
+  --text-tertiary: #93a4be;
   --danger: #ef4444;
-  --shadow-lg: 0 24px 80px rgba(3, 10, 21, 0.42);
-  --glow-accent: 0 0 0 1px rgba(97, 211, 255, 0.08), 0 20px 70px rgba(45, 212, 191, 0.12);
+  --shadow-lg: 0 22px 60px rgba(7, 16, 28, 0.24);
+  --glow-accent: 0 0 0 1px rgba(82, 180, 255, 0.1), 0 18px 52px rgba(82, 180, 255, 0.12);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
@@ -26,21 +26,21 @@ html.dark {
 }
 
 html.light {
-  --bg: #f4f7fb;
-  --sidebar: rgba(251, 252, 255, 0.95);
-  --surface: rgba(255, 255, 255, 0.88);
-  --surface-hover: rgba(242, 246, 255, 0.96);
-  --surface-active: rgba(233, 240, 255, 0.98);
-  --border: rgba(84, 110, 177, 0.14);
-  --border-light: rgba(84, 110, 177, 0.22);
-  --accent: #1a7dff;
+  --bg: #f5f7fb;
+  --sidebar: rgba(251, 252, 255, 0.96);
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-hover: rgba(246, 249, 255, 0.98);
+  --surface-active: rgba(237, 242, 251, 0.98);
+  --border: rgba(97, 120, 168, 0.14);
+  --border-light: rgba(97, 120, 168, 0.22);
+  --accent: #1677f2;
   --accent-hover: #0067eb;
-  --text-primary: #0d1b2d;
-  --text-secondary: #41526f;
-  --text-tertiary: #6c7d99;
+  --text-primary: #152235;
+  --text-secondary: #495a74;
+  --text-tertiary: #72829c;
   --danger: #dc2626;
-  --shadow-lg: 0 24px 80px rgba(117, 138, 181, 0.15);
-  --glow-accent: 0 0 0 1px rgba(26, 125, 255, 0.08), 0 16px 52px rgba(26, 125, 255, 0.12);
+  --shadow-lg: 0 20px 60px rgba(117, 138, 181, 0.12);
+  --glow-accent: 0 0 0 1px rgba(22, 119, 242, 0.08), 0 16px 44px rgba(22, 119, 242, 0.1);
 }
 
 * {
@@ -78,10 +78,10 @@ body::before {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 16% 16%, rgba(98, 211, 255, 0.12), transparent 28%),
-    radial-gradient(circle at 84% 12%, rgba(102, 126, 234, 0.16), transparent 26%),
-    radial-gradient(circle at 50% 100%, rgba(45, 212, 191, 0.12), transparent 34%),
-    linear-gradient(180deg, rgba(10, 17, 31, 0.2), rgba(6, 10, 19, 0));
+    radial-gradient(circle at 16% 16%, rgba(82, 180, 255, 0.1), transparent 28%),
+    radial-gradient(circle at 84% 12%, rgba(120, 144, 255, 0.12), transparent 26%),
+    radial-gradient(circle at 50% 100%, rgba(78, 196, 163, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
   z-index: 0;
 }
 
@@ -212,25 +212,25 @@ pre,
 }
 
 .panel {
-  background: linear-gradient(180deg, rgba(17, 30, 54, 0.82), rgba(10, 18, 34, 0.78));
+  background: linear-gradient(180deg, rgba(34, 50, 72, 0.74), rgba(22, 35, 54, 0.7));
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(18px);
 }
 
 html.light .panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 248, 255, 0.88));
-  box-shadow: 0 24px 80px rgba(117, 138, 181, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 255, 0.9));
+  box-shadow: 0 20px 60px rgba(117, 138, 181, 0.14);
 }
 
 .glass-panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
   border: 1px solid var(--border);
   backdrop-filter: blur(20px);
 }
 
 html.light .glass-panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(245, 247, 252, 0.7));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(245, 247, 252, 0.76));
 }
 
 .grid-bg {
@@ -256,7 +256,7 @@ html.light .glass-panel {
 }
 
 .text-gradient {
-  background: linear-gradient(120deg, #f8fbff 0%, #8fdcff 28%, #7b8cff 62%, #b8ffde 100%);
+  background: linear-gradient(120deg, #f7fbff 0%, #7db8ff 34%, #5c91ef 68%, #69d8b4 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -29,8 +29,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#08111f' },
-    { media: '(prefers-color-scheme: light)', color: '#f4f7fb' },
+    { media: '(prefers-color-scheme: dark)', color: '#102033' },
+    { media: '(prefers-color-scheme: light)', color: '#f5f7fb' },
   ],
 }
 
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
 const themeScript = `
 (function() {
   try {
-    var t = localStorage.getItem('pyxis-theme') || 'dark';
+    var t = localStorage.getItem('pyxis-theme') || 'light';
     var r = t === 'system'
       ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
       : t;
@@ -69,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} dark`}
+      className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} light`}
       suppressHydrationWarning
     >
       <head>
@@ -82,9 +82,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             position="bottom-center"
             toastOptions={{
               style: {
-                background: 'rgba(13, 24, 43, 0.94)',
+                background: 'var(--surface)',
                 color: 'var(--text-primary)',
-                border: '1px solid rgba(125, 158, 255, 0.18)',
+                border: '1px solid var(--border-light)',
                 borderRadius: '14px',
                 fontSize: '14px',
                 backdropFilter: 'blur(14px)',

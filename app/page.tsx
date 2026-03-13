@@ -143,13 +143,13 @@ export default function LandingPage() {
                 Enterprise-grade AI orchestration for search, workflow, media, code, and decisioning
               </div>
 
-              <h1 className="font-display text-5xl leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
-                Build the <span className="text-gradient">AI command center</span> that runs your company.
+              <h1 className="font-display text-4xl leading-[0.98] tracking-[-0.05em] sm:text-5xl lg:text-6xl">
+                Bring search, copilots, workflows, and memory into one <span className="text-gradient">AI workspace</span>.
               </h1>
 
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-text-secondary sm:text-xl">
-                Pyxis One transforms your existing AI app into a full operating system for enterprise execution:
-                copilots, autonomous workflows, multimodal studios, knowledge memory, governance, and model routing in one platform.
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-text-secondary sm:text-[19px]">
+                Pyxis One turns scattered AI tools into one calmer, more capable product surface for teams:
+                chat, research, code, voice, workflows, knowledge, governance, and provider routing in the same workspace.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">

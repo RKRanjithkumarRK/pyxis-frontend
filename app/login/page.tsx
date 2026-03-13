@@ -142,12 +142,12 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <h1 className="mt-8 font-display text-[clamp(2rem,5vw,4.6rem)] leading-[0.94] text-text-primary">
-                  Enter the workspace built to look credible on every screen, and stronger in front of founders, operators, and enterprise buyers.
+                <h1 className="mt-8 font-display text-[clamp(1.9rem,4.2vw,3.8rem)] leading-[0.98] text-text-primary">
+                  Enter a calmer, more capable workspace built to feel clear on every screen.
                 </h1>
 
                 <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
-                  This version is tuned for better visibility, stronger layout balance, mobile-safe inputs, and a more dependable cross-device experience without losing the premium product feel.
+                  This version is tuned for stronger layout balance, softer visual weight, mobile-safe inputs, and a more dependable cross-device experience without losing the premium product feel.
                 </p>
               </div>
 

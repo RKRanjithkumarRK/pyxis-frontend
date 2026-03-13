@@ -6,7 +6,6 @@ import {
   BarChart2,
   Bot,
   Code2,
-  Gamepad2,
   Globe,
   Image,
   LayoutGrid,
@@ -61,7 +60,6 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
       { href: '/images', icon: Image, label: 'Image Studio' },
       { href: '/voice', icon: Mic, label: 'Voice AI' },
       { href: '/tools/marketplace', icon: Package, label: 'Marketplace' },
-      { href: '/tools/snake', icon: Gamepad2, label: 'Snake' },
     ],
   },
 ]

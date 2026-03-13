@@ -181,11 +181,11 @@ export default function HubPage() {
                 <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
                 Control Tower live
               </div>
-              <h1 className={`font-display leading-[0.95] text-text-primary ${compactView ? 'text-[clamp(2.15rem,3vw,3.4rem)]' : 'text-[clamp(2.55rem,3.5vw,4.4rem)]'}`}>
-                Welcome to the upgraded <span className="text-gradient">Pyxis One</span> workspace.
+              <h1 className={`font-display leading-[0.98] text-text-primary ${compactView ? 'text-[clamp(1.95rem,2.7vw,3rem)]' : 'text-[clamp(2.25rem,3vw,3.8rem)]'}`}>
+                Welcome to your <span className="text-gradient">Pyxis One</span> workspace.
               </h1>
               <p className={`max-w-4xl text-text-secondary ${compactView ? 'mt-3 text-sm leading-6 sm:text-[15px] sm:leading-7' : 'mt-4 text-[15px] leading-7 sm:text-base sm:leading-8'}`}>
-                This hub is now the front door to a larger AI operating system: an executive-style launch surface for chat, agents, workflows, knowledge, media, and model operations.
+                A calmer launch surface for chat, agents, workflows, knowledge, media, and model operations, designed to stay usable across real working screens.
               </p>
 
               <div className={`grid gap-3 sm:grid-cols-3 ${compactView ? 'mt-4' : 'mt-6'}`}>
@@ -224,7 +224,7 @@ export default function HubPage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Launch surfaces</p>
-                <h2 className={`mt-2 font-display leading-tight text-text-primary ${compactView ? 'text-[clamp(1.7rem,2vw,2.3rem)]' : 'text-[clamp(2rem,2.4vw,2.8rem)]'}`}>Start from the right operational lane.</h2>
+                <h2 className={`mt-2 font-display leading-tight text-text-primary ${compactView ? 'text-[clamp(1.55rem,1.9vw,2.05rem)]' : 'text-[clamp(1.8rem,2.15vw,2.45rem)]'}`}>Start from the right operational lane.</h2>
               </div>
               <button
                 onClick={() => router.push('/tools/command-center')}

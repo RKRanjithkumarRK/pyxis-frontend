@@ -11,9 +11,9 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'system',
+  theme: 'light',
   setTheme: () => {},
-  resolvedTheme: 'dark',
+  resolvedTheme: 'light',
 })
 
 function getResolved(theme: Theme): 'dark' | 'light' {
@@ -30,12 +30,12 @@ function applyTheme(resolved: 'dark' | 'light') {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark')
-  const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setThemeState] = useState<Theme>('light')
+  const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('light')
 
   // On mount: read saved preference
   useEffect(() => {
-    const saved = (localStorage.getItem('pyxis-theme') as Theme) || 'dark'
+    const saved = (localStorage.getItem('pyxis-theme') as Theme) || 'light'
     setThemeState(saved)
     const resolved = getResolved(saved)
     setResolvedTheme(resolved)
