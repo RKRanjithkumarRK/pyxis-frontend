@@ -11,6 +11,7 @@ import {
   signInWithPopup,
   signInWithRedirect,
   signInAnonymously as firebaseSignInAnonymously,
+  signInWithCustomToken,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   updateProfile,
@@ -142,7 +143,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInAsGuest = async () => {
     if (!auth) throw new Error('Authentication is not configured for this environment.')
-    await firebaseSignInAnonymously(auth)
+    try {
+      await firebaseSignInAnonymously(auth)
+      return
+    } catch (err) {
+      const res = await fetch('/api/guest', { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.token) {
+        throw new Error(data?.error || 'Guest sign-in unavailable')
+      }
+      await signInWithCustomToken(auth, data.token)
+    }
   }
 
   const signOut = async () => {
