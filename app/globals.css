@@ -41,6 +41,48 @@ html.light {
   --shadow-elevated: 0 40px 90px rgba(23, 34, 59, 0.25);
 }
 
+/* ─── Light-mode chat overrides ──────────────────────────────────── */
+html.light .chat-board {
+  background: #FFFFFF;
+  border-color: var(--border);
+}
+
+html.light .chat-header {
+  background: #FFFFFF;
+}
+
+html.light .message-bubble {
+  background: #F4F6FB;
+  border-color: var(--border);
+}
+
+html.light .message-bubble.assistant {
+  background: #F4F6FB;
+  color: var(--text-primary);
+}
+
+html.light .message-bubble.user {
+  background: #5B8CFF;
+  border-color: #5B8CFF;
+  color: #ffffff;
+}
+
+html.light .message-bubble.user .text-text-primary {
+  color: #ffffff;
+}
+
+html.light .chat-input-area {
+  background: rgba(245, 247, 251, 0.95);
+}
+
+html.light .chat-input-card {
+  background: #FFFFFF;
+}
+
+html.light body::before {
+  opacity: 0.15;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -279,10 +321,12 @@ textarea::placeholder {
 
 .chat-shell {
   width: 100%;
+  flex: 1;
   min-height: 0;
   display: flex;
   justify-content: center;
   padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 .chat-board {
@@ -294,7 +338,8 @@ textarea::placeholder {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 80vh;
+  flex: 1;
+  min-height: 0;
 }
 
 .chat-header {

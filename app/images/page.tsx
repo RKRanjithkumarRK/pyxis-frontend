@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   Sparkles, Download, Maximize2, RotateCcw, Paperclip, ChevronDown,
-  X, Loader2, Wand2, Image as ImageIcon, Zap, Clock
+  X, Loader2, Wand2, Image as ImageIcon, Zap, Clock, RefreshCw
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -119,6 +119,14 @@ interface ImageCardProps {
 function ImageCard({ img, onExpand, onDownload, onRemix }: ImageCardProps) {
   const [loaded, setLoaded] = useState(false)
   const [errored, setErrored] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
+
+  const handleRetry = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setErrored(false)
+    setLoaded(false)
+    setRetryKey(k => k + 1)
+  }
 
   return (
     <div
@@ -130,6 +138,7 @@ function ImageCard({ img, onExpand, onDownload, onRemix }: ImageCardProps) {
       )}
       {!errored ? (
         <img
+          key={retryKey}
           src={img.url}
           alt={img.prompt}
           onLoad={() => setLoaded(true)}
@@ -138,7 +147,18 @@ function ImageCard({ img, onExpand, onDownload, onRemix }: ImageCardProps) {
           loading="lazy"
         />
       ) : (
-        <div className="w-full h-48 flex items-center justify-center text-gray-400 text-xs">Failed to load</div>
+        <div className="w-full h-48 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-gray-100 to-gray-50">
+          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-gray-400" />
+          </div>
+          <p className="text-gray-400 text-xs text-center px-4 leading-relaxed line-clamp-2">{img.prompt}</p>
+          <button
+            onClick={handleRetry}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-500 text-xs hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm"
+          >
+            <RefreshCw className="w-3 h-3" /> Retry
+          </button>
+        </div>
       )}
 
       {/* Hover overlay */}
