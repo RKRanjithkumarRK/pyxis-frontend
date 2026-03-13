@@ -62,7 +62,9 @@ export default function ChatView({ conversationId }: Props) {
         const data = await res.json()
         setMessages(data.messages || [])
       }
-    } catch {}
+    } catch (err) {
+      console.error('[ChatView] loadMessages error:', err)
+    }
   }
 
   const refreshConversations = async () => {
@@ -76,7 +78,9 @@ export default function ChatView({ conversationId }: Props) {
         const data = await res.json()
         setConversations(data.conversations || [])
       }
-    } catch {}
+    } catch (err) {
+      console.error('[ChatView] refreshConversations error:', err)
+    }
   }
 
   useEffect(() => {

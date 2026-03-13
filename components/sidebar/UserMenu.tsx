@@ -34,11 +34,11 @@ export default function UserMenu() {
     <div ref={ref} className={`relative ${isOpen ? 'p-3' : 'px-2 py-2'}`}>
       <button
         onClick={() => setOpen(!open)}
-        className={`flex w-full items-center gap-3 rounded-[24px] border border-border/80 bg-white/8 px-3 py-3 text-left transition-colors ${
-          isOpen ? 'hover:border-border hover:bg-white/12' : 'justify-center'
+        className={`flex w-full items-center gap-3 rounded-[24px] border border-border/80 bg-surface-hover px-3 py-3 text-left transition-colors ${
+          isOpen ? 'hover:border-border hover:bg-surface-active' : 'justify-center'
         }`}
       >
-        <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white/12 text-sm font-semibold text-cyan-200">
+        <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-surface-active text-sm font-semibold text-accent">
           {user.photoURL ? (
             <img src={user.photoURL} alt="" className="h-11 w-11 object-cover" />
           ) : (
@@ -61,8 +61,8 @@ export default function UserMenu() {
 
       {open && (
         <div className="absolute bottom-full left-3 right-3 z-50 mb-2 rounded-[24px] border border-border/80 bg-sidebar/95 p-2 shadow-2xl backdrop-blur-2xl">
-          <div className="mb-2 flex items-center gap-2 rounded-[18px] bg-white/8 px-3 py-3">
-            <ShieldCheck size={16} className="text-cyan-300" />
+          <div className="mb-2 flex items-center gap-2 rounded-[18px] bg-surface-hover px-3 py-3">
+            <ShieldCheck size={16} className="text-accent" />
             <div>
               <p className="text-xs font-semibold text-text-primary">Workspace security</p>
               <p className="text-[11px] text-text-tertiary">Identity and session controls active</p>
@@ -74,14 +74,14 @@ export default function UserMenu() {
               setSettingsOpen(true)
               setOpen(false)
             }}
-            className="flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm text-text-secondary transition-colors hover:bg-white/8 hover:text-text-primary"
+            className="flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
           >
             <Settings size={16} />
             Settings
           </button>
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm text-text-secondary transition-colors hover:bg-white/8 hover:text-text-primary"
+            className="flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
           >
             <LogOut size={16} />
             Log out

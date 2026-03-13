@@ -98,7 +98,7 @@ export default function WelcomeScreen({ onSend }: Props) {
               <div className="mt-5 grid gap-3 md:grid-cols-3">
                 {HIGHLIGHTS.map((item) => (
                   <div key={item.title} className="glass-panel rounded-[24px] p-4">
-                    <item.icon className="text-cyan-300" size={18} />
+                    <item.icon className="text-accent" size={18} />
                     <p className="mt-3 text-sm font-semibold text-text-primary">{item.title}</p>
                     <p className="mt-1.5 text-xs leading-6 text-text-secondary">{item.detail}</p>
                   </div>
@@ -115,18 +115,18 @@ export default function WelcomeScreen({ onSend }: Props) {
                   'Debug a failing build or script',
                   'Plan a workflow for a manual process',
                 ].map((item) => (
-                  <div key={item} className="flex items-start gap-3 rounded-[18px] bg-white/8 px-4 py-3">
-                    <span className="mt-1 h-2 w-2 rounded-full bg-cyan-300" />
+                  <div key={item} className="flex items-start gap-3 rounded-[18px] bg-surface-hover px-4 py-3">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-accent" />
                     <p className="text-sm leading-6 text-text-secondary">{item}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-5 rounded-[22px] border border-border/70 bg-white/8 px-4 py-4">
+              <div className="mt-5 rounded-[22px] border border-border/70 bg-surface-hover px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.24em] text-text-tertiary">Model lanes</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {PROVIDERS.map((provider) => (
-                    <span key={provider} className="rounded-full border border-border/70 bg-white/10 px-3 py-1.5 text-xs font-semibold text-text-secondary">
+                    <span key={provider} className="rounded-full border border-border/70 bg-surface-active px-3 py-1.5 text-xs font-semibold text-text-secondary">
                       {provider}
                     </span>
                   ))}
@@ -144,7 +144,7 @@ export default function WelcomeScreen({ onSend }: Props) {
               className="group panel rounded-[28px] p-5 text-left transition-transform hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-cyan-300">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-active text-accent">
                   <starter.icon size={18} />
                 </div>
                 <span className="pill text-[11px] text-text-tertiary">Starter</span>

@@ -291,7 +291,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
         <div className="message-actions">
           <button
             onClick={handleCopy}
-            className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-white/5"
+            className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-hover"
             title={isUser ? 'Copy message' : 'Copy response'}
           >
             {copied ? <Check size={15} /> : <Copy size={15} />}
@@ -301,7 +301,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
             onEdit && index !== undefined && (
               <button
                 onClick={() => onEdit(message.content, index)}
-                className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-white/5"
+                className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-hover"
                 title="Edit message"
               >
                 <Pencil size={15} />
@@ -312,7 +312,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
               <button
                 onClick={() => setLiked(liked === true ? null : true)}
                 className={`p-1 rounded-lg transition-colors ${
-                  liked === true ? 'text-accent' : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
+                  liked === true ? 'text-accent' : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                 }`}
                 title="Good response"
               >
@@ -321,7 +321,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
               <button
                 onClick={() => setLiked(liked === false ? null : false)}
                 className={`p-1 rounded-lg transition-colors ${
-                  liked === false ? 'text-danger' : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
+                  liked === false ? 'text-danger' : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                 }`}
                 title="Bad response"
               >
@@ -330,7 +330,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
               {isLast && onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-white/5"
+                  className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-hover"
                   title="Regenerate response"
                 >
                   <RefreshCw size={15} />
