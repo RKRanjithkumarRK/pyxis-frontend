@@ -5,6 +5,30 @@ import { adminDb } from '@/lib/firebase-admin'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
+function normalizeSize(width: number, height: number, maxEdge = 1024) {
+  const safeWidth = Number.isFinite(width) && width > 0 ? width : 1024
+  const safeHeight = Number.isFinite(height) && height > 0 ? height : 1024
+  const maxDim = Math.max(safeWidth, safeHeight)
+  if (maxDim <= maxEdge) {
+    return { width: Math.round(safeWidth), height: Math.round(safeHeight) }
+  }
+  const scale = maxEdge / maxDim
+  return {
+    width: Math.max(256, Math.round(safeWidth * scale)),
+    height: Math.max(256, Math.round(safeHeight * scale)),
+  }
+}
+
+function resolvePollinationsModels(rawModel: unknown) {
+  const normalized = typeof rawModel === 'string' ? rawModel.toLowerCase() : ''
+  const candidates: string[] = []
+  if (normalized.includes('anime')) candidates.push('flux-anime')
+  if (normalized.includes('photo') || normalized.includes('real')) candidates.push('flux-realism')
+  if (normalized.includes('flux')) candidates.push('flux')
+  candidates.push('flux')
+  return Array.from(new Set(candidates))
+}
+
 export async function POST(req: NextRequest) {
   const user = await verifyToken(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -13,6 +37,7 @@ export async function POST(req: NextRequest) {
   if (!prompt) return NextResponse.json({ error: 'Missing prompt' }, { status: 400 })
 
   const seed = Math.floor(Math.random() * 999999)
+  const safeSize = normalizeSize(width, height)
 
   // Check if user has OpenAI key — use DALL-E 3 if available
   const keyDoc = await adminDb.doc(`users/${user.uid}/private/apikeys`).get()
@@ -43,21 +68,25 @@ export async function POST(req: NextRequest) {
   // ── 1. Try Pollinations (fast, ~5-15s) ──────────────────────────────
   try {
     const encoded = encodeURIComponent(prompt)
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=${model}&enhance=true`
-    const ctrl = new AbortController()
-    const t = setTimeout(() => ctrl.abort(), 30000)
+    const pollinationModels = resolvePollinationsModels(model)
 
-    const imgRes = await fetch(pollinationsUrl, {
-      signal: ctrl.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Pyxis/1.0)' },
-    })
-    clearTimeout(t)
+    for (const candidate of pollinationModels) {
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${safeSize.width}&height=${safeSize.height}&seed=${seed}&nologo=true&model=${candidate}&enhance=true`
+      const ctrl = new AbortController()
+      const t = setTimeout(() => ctrl.abort(), 30000)
 
-    if (imgRes.ok) {
-      const buffer = await imgRes.arrayBuffer()
-      const mimeType = imgRes.headers.get('content-type') || 'image/jpeg'
-      const base64 = Buffer.from(buffer).toString('base64')
-      return NextResponse.json({ url: `data:${mimeType};base64,${base64}`, prompt, source: 'pollinations' })
+      const imgRes = await fetch(pollinationsUrl, {
+        signal: ctrl.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Pyxis/1.0)' },
+      })
+      clearTimeout(t)
+
+      if (imgRes.ok) {
+        const buffer = await imgRes.arrayBuffer()
+        const mimeType = imgRes.headers.get('content-type') || 'image/jpeg'
+        const base64 = Buffer.from(buffer).toString('base64')
+        return NextResponse.json({ url: `data:${mimeType};base64,${base64}`, prompt, source: 'pollinations' })
+      }
     }
   } catch (err: any) { console.error('Image gen error (Pollinations):', err) /* continue to next provider */ }
 

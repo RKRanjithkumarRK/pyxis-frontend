@@ -50,7 +50,7 @@ function SetupCard({ onReload }: { onReload: () => void }) {
   ]
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
+    <div className="min-h-0 flex flex-col bg-bg">
       {/* Header */}
       <div className="border-b border-border px-6 py-3 flex items-center gap-3 shrink-0">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center">
@@ -372,7 +372,7 @@ export default function GeneratePage() {
   /* ── Checking state ── */
   if (setupState === 'checking') {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="min-h-0 flex flex-1 items-center justify-center bg-bg">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 rounded-full border-2 border-violet-500 border-t-transparent animate-spin mx-auto" />
           <p className="text-text-secondary text-sm">Checking configuration…</p>
@@ -384,7 +384,7 @@ export default function GeneratePage() {
   /* ── Setup required ── */
   if (setupState === 'needs-setup' && (tab === 'txt2vid' || tab === 'img2vid')) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col">
+      <div className="min-h-0 flex flex-col bg-bg">
         {/* Tabs visible even in setup mode so user can switch to Audio */}
         <div className="border-b border-border px-4 flex shrink-0">
           {([
@@ -412,7 +412,7 @@ export default function GeneratePage() {
 
   /* ══════════════ RENDER ══════════════ */
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
+    <div className="min-h-0 flex flex-col bg-bg">
 
       {/* Header */}
       <div className="border-b border-border px-6 py-3 flex items-center gap-3 shrink-0">
@@ -452,10 +452,10 @@ export default function GeneratePage() {
 
       {/* ══ VIDEO TABS ══ */}
       {(tab === 'txt2vid' || tab === 'img2vid') && (
-        <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 112px)' }}>
+        <div className="flex flex-1 min-h-0 overflow-hidden">
 
           {/* Left: Controls */}
-          <div className="w-[360px] shrink-0 border-r border-border overflow-y-auto p-5 space-y-5">
+          <div className="w-[360px] shrink-0 min-h-0 border-r border-border overflow-y-auto p-5 space-y-5">
 
             {/* Provider info banner */}
             <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-violet-500/5 border border-violet-500/20">

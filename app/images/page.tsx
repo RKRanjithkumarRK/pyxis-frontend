@@ -314,6 +314,7 @@ export default function ImagesPage() {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: finalPrompt,
+          model: selectedModel.id,
           width: selectedRatio.width,
           height: selectedRatio.height,
         }),
@@ -389,7 +390,7 @@ export default function ImagesPage() {
   const allGalleryImages = [...generatedImages, ...exampleImages]
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+    <div className="min-h-0 flex flex-col bg-transparent text-text-primary">
 
       {/* ── Hero Header ───────────────────────────────────────────── */}
       <div className="w-full px-6 pt-10 pb-6 flex flex-col items-center text-center border-b border-gray-100">
