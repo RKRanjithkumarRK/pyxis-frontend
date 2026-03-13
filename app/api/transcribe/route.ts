@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyToken } from '@/lib/auth-helper'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
+  const user = await verifyToken(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const { audio, mimeType = 'audio/webm' } = await req.json()
 
@@ -11,7 +15,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No audio provided' }, { status: 400 })
     }
 
-    const googleKey = process.env.GOOGLE_API_KEY
+    const googleKey =
+      process.env.GOOGLE_API_KEY ||
+      process.env.GOOGLE_API_KEY_2 ||
+      process.env.GOOGLE_API_KEY_3
     if (!googleKey) {
       return NextResponse.json({ error: 'No Google API key configured' }, { status: 503 })
     }

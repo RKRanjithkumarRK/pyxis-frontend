@@ -33,6 +33,7 @@ SyntaxHighlighter.registerLanguage('markdown', markdown)
 import { Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Play, Loader2, Pencil } from 'lucide-react'
 import { Message as MessageType } from '@/types'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Props {
   message: MessageType
@@ -82,6 +83,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   const [isRunning, setIsRunning] = useState(false)
   const [output, setOutput] = useState<string | null>(null)
   const { resolvedTheme } = useTheme()
+  const { getToken } = useAuth()
   const isLight = resolvedTheme === 'light'
 
   const handleCopy = async () => {
@@ -105,9 +107,13 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
         result = await runJavaScript(code)
       } else {
         // Run Python / TypeScript / Bash via server-side Judge0
+        const token = await getToken()
         const res = await fetch('/api/run', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({ language: lang, code }),
         })
         const data = await res.json()
@@ -223,7 +229,6 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
 }
 
 export default function Message({ message, onRegenerate, isLast, index, onEdit }: Props) {
-  const [hovered, setHovered] = useState(false)
   const [copied, setCopied] = useState(false)
   const [liked, setLiked] = useState<boolean | null>(null)
   const isUser = message.role === 'user'
@@ -239,8 +244,6 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
   return (
     <div
       className={`message-row ${isUser ? 'user' : ''}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       {!isUser && (
         <div className="shrink-0 mt-1">

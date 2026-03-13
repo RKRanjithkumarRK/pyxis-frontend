@@ -110,7 +110,7 @@ export default function ChatView({ conversationId }: Props) {
     let buffer = ''
 
     const assistantMsg: Message = {
-      id: `temp-assistant-${Date.now()}`,
+      id: `temp-assistant-${crypto.randomUUID()}`,
       role: 'assistant',
       content: '',
       createdAt: new Date().toISOString(),
@@ -165,7 +165,7 @@ export default function ChatView({ conversationId }: Props) {
     if (!token) return
 
     const userMsg: Message = {
-      id: `user-${Date.now()}`,
+      id: `user-${crypto.randomUUID()}`,
       role: 'user',
       content,
       createdAt: new Date().toISOString(),
@@ -223,7 +223,7 @@ export default function ChatView({ conversationId }: Props) {
         setMessages(prev => [
           ...prev,
           {
-            id: `error-${Date.now()}`,
+            id: `error-${crypto.randomUUID()}`,
             role: 'assistant',
             content: `Sorry, something went wrong: ${err.message}`,
             createdAt: new Date().toISOString(),
@@ -287,7 +287,7 @@ export default function ChatView({ conversationId }: Props) {
           setMessages(prev => [
             ...prev,
             {
-              id: `error-${Date.now()}`,
+              id: `error-${crypto.randomUUID()}`,
               role: 'assistant',
               content: `Sorry: ${err.message}`,
               createdAt: new Date().toISOString(),

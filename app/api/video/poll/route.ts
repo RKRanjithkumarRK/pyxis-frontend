@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyToken } from '@/lib/auth-helper'
 
 export const maxDuration = 25
 export const dynamic = 'force-dynamic'
@@ -35,6 +36,9 @@ function replicateStatusToOurs(status: string, logs?: string): {
 }
 
 export async function GET(req: NextRequest) {
+  const user = await verifyToken(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const jobId    = searchParams.get('jobId')
   const provider = searchParams.get('provider') ?? 'replicate'

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyToken } from '@/lib/auth-helper'
 
 export const maxDuration = 25
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,9 @@ const REPLICATE_I2V_VERSION =
   'stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438'
 
 export async function POST(req: NextRequest) {
+  const user = await verifyToken(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   let body: { prompt?: string; mode?: string; imageData?: string; testMode?: boolean }
   try { body = await req.json() } catch { body = {} }
 
