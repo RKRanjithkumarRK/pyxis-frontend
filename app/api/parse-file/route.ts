@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyToken } from '@/lib/auth-helper'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -15,6 +16,9 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await verifyToken(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null

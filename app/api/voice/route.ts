@@ -164,7 +164,8 @@ export async function POST(req: NextRequest) {
   const keySnap = await adminDb.doc(`users/${user.uid}/private/apikeys`).get()
   const userKeys = keySnap.exists ? keySnap.data() || {} : {}
   const orKey = userKeys.openrouter || process.env.OPENROUTER_API_KEY
-  const googleKey = process.env.GOOGLE_API_KEY
+  // Use any available Google key (supports backup keys)
+  const googleKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_API_KEY_2 || process.env.GOOGLE_API_KEY_3
 
   if (!orKey && !googleKey) {
     return Response.json({ error: 'No API key configured.' }, { status: 400 })
@@ -202,7 +203,8 @@ export async function POST(req: NextRequest) {
     : messages
 
   const allMessages = [{ role: 'system', content: systemContent }, ...augmentedMessages]
-  const requestBody = { messages: allMessages, stream: false, max_tokens: 300 }
+  // 600 tokens gives enough room for 2-3 spoken sentences with detail, without being too long
+  const requestBody = { messages: allMessages, stream: false, max_tokens: 600 }
 
   if (googleKey) {
     for (const model of ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash']) {

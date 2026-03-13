@@ -185,49 +185,54 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 2. TOGETHER AI
-  if (togetherKey) {
-    const togetherModels = [
-      'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-      'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
-      'Qwen/Qwen2.5-72B-Instruct-Turbo',
-    ]
+  // 2–4. FREE FALLBACKS (Together / Mistral / Groq) ─ only for Gemini/free models.
+  // IMPORTANT: never run these for premium OpenRouter models (Claude, GPT-4, etc.)
+  // because Together/Mistral/Groq would return their OWN models, not the one the user selected.
+  if (isGeminiModel(model)) {
+    // 2. TOGETHER AI
+    if (togetherKey) {
+      const togetherModels = [
+        'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+        'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+        'Qwen/Qwen2.5-72B-Instruct-Turbo',
+      ]
 
-    for (const togetherModel of togetherModels) {
-      const result = await callProvider(
-        'https://api.together.xyz/v1/chat/completions',
-        { Authorization: `Bearer ${togetherKey}` },
-        { model: togetherModel, messages: allMessages, stream: true, max_tokens: maxTokens }
-      )
-      if (result.res) return sseResponse(result.res, togetherModel)
+      for (const togetherModel of togetherModels) {
+        const result = await callProvider(
+          'https://api.together.xyz/v1/chat/completions',
+          { Authorization: `Bearer ${togetherKey}` },
+          { model: togetherModel, messages: allMessages, stream: true, max_tokens: maxTokens }
+        )
+        if (result.res) return sseResponse(result.res, togetherModel)
+      }
+    }
+
+    // 3. MISTRAL AI
+    if (mistralKey) {
+      for (const mistralModel of ['mistral-small-latest', 'open-mistral-nemo']) {
+        const result = await callProvider(
+          'https://api.mistral.ai/v1/chat/completions',
+          { Authorization: `Bearer ${mistralKey}` },
+          { model: mistralModel, messages: allMessages, stream: true, max_tokens: maxTokens }
+        )
+        if (result.res) return sseResponse(result.res, mistralModel)
+      }
+    }
+
+    // 4. GROQ
+    if (groqKey) {
+      for (const groqModel of ['llama-3.3-70b-versatile', 'llama3-70b-8192', 'gemma2-9b-it']) {
+        const result = await callProvider(
+          'https://api.groq.com/openai/v1/chat/completions',
+          { Authorization: `Bearer ${groqKey}` },
+          { model: groqModel, messages: allMessages, stream: true, max_tokens: Math.min(maxTokens, 8192) }
+        )
+        if (result.res) return sseResponse(result.res, groqModel)
+      }
     }
   }
 
-  // 3. MISTRAL AI
-  if (mistralKey) {
-    for (const mistralModel of ['mistral-small-latest', 'open-mistral-nemo']) {
-      const result = await callProvider(
-        'https://api.mistral.ai/v1/chat/completions',
-        { Authorization: `Bearer ${mistralKey}` },
-        { model: mistralModel, messages: allMessages, stream: true, max_tokens: maxTokens }
-      )
-      if (result.res) return sseResponse(result.res, mistralModel)
-    }
-  }
-
-  // 4. GROQ
-  if (groqKey) {
-    for (const groqModel of ['llama-3.3-70b-versatile', 'llama3-70b-8192', 'gemma2-9b-it']) {
-      const result = await callProvider(
-        'https://api.groq.com/openai/v1/chat/completions',
-        { Authorization: `Bearer ${groqKey}` },
-        { model: groqModel, messages: allMessages, stream: true, max_tokens: Math.min(maxTokens, 8192) }
-      )
-      if (result.res) return sseResponse(result.res, groqModel)
-    }
-  }
-
-  // 5. OPENROUTER
+  // 5. OPENROUTER — used for premium models (Claude, GPT-4, etc.) and as Gemini fallback
   if (orKey) {
     const openRouterModels = isGeminiModel(model)
       ? ['google/gemini-2.0-flash-001', 'meta-llama/llama-3.3-70b-instruct:free', 'google/gemma-3-27b-it:free']

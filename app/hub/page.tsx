@@ -206,10 +206,10 @@ export default function HubPage() {
               {ENTERPRISE_SIGNALS.map((signal) => (
                 <div key={signal.title} className={`glass-panel rounded-[26px] ${compactView ? 'p-3.5' : 'p-4'}`}>
                   <div className="flex items-center justify-between">
-                    <div className={`flex items-center justify-center rounded-2xl bg-white/8 ${compactView ? 'h-9 w-9' : 'h-10 w-10'}`}>
-                      <signal.icon className="text-cyan-300" size={compactView ? 18 : 20} />
+                    <div className={`flex items-center justify-center rounded-2xl bg-surface-hover ${compactView ? 'h-9 w-9' : 'h-10 w-10'}`}>
+                      <signal.icon className="text-accent" size={compactView ? 18 : 20} />
                     </div>
-                    <span className="pill text-xs text-cyan-200">{signal.value}</span>
+                    <span className="pill text-xs text-accent">{signal.value}</span>
                   </div>
                   <p className={`font-display text-text-primary ${compactView ? 'mt-3 text-[clamp(1.3rem,1.6vw,1.7rem)]' : 'mt-4 text-[clamp(1.55rem,2vw,2rem)]'}`}>{signal.title}</p>
                   <p className={`text-text-secondary ${compactView ? 'mt-1.5 text-xs leading-5 sm:text-sm sm:leading-6' : 'mt-2 text-sm leading-6'}`}>{signal.detail}</p>
@@ -243,8 +243,8 @@ export default function HubPage() {
                   className={`panel group rounded-[28px] text-left transition-transform hover:-translate-y-1 ${compactView ? 'p-4' : 'p-5'}`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className={`flex items-center justify-center rounded-2xl bg-white/8 ${compactView ? 'h-10 w-10' : 'h-11 w-11'}`}>
-                      <module.icon className="text-cyan-300" size={compactView ? 18 : 20} />
+                    <div className={`flex items-center justify-center rounded-2xl bg-surface-hover ${compactView ? 'h-10 w-10' : 'h-11 w-11'}`}>
+                      <module.icon className="text-accent" size={compactView ? 18 : 20} />
                     </div>
                     <span className="pill text-xs text-text-secondary">{module.tag}</span>
                   </div>
@@ -269,7 +269,7 @@ export default function HubPage() {
                   <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Momentum</p>
                   <h2 className={`mt-2 font-display leading-tight text-text-primary ${compactView ? 'text-[clamp(1.7rem,2vw,2.2rem)]' : 'text-[clamp(2rem,2.3vw,2.7rem)]'}`}>Continue from your strongest surfaces.</h2>
                 </div>
-                <Activity className="text-cyan-300" size={18} />
+                <Activity className="text-accent" size={18} />
               </div>
 
               <div className={compactView ? 'mt-4 space-y-2.5' : 'mt-5 space-y-3'}>
@@ -277,9 +277,9 @@ export default function HubPage() {
                   <button
                     key={module.href}
                     onClick={() => launch(module)}
-                    className={`flex w-full items-center gap-3 rounded-[20px] border border-border/80 bg-white/5 px-4 text-left transition-colors hover:bg-white/8 ${compactView ? 'py-3' : 'py-3.5'}`}
+                    className={`flex w-full items-center gap-3 rounded-[20px] border border-border/80 bg-surface-hover px-4 text-left transition-colors hover:bg-surface-hover ${compactView ? 'py-3' : 'py-3.5'}`}
                   >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/8 text-text-primary">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-hover text-text-primary">
                       <module.icon size={18} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -300,12 +300,12 @@ export default function HubPage() {
                   <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Ops feed</p>
                   <h3 className={`mt-2 font-display text-text-primary ${compactView ? 'text-[clamp(1.5rem,1.8vw,1.95rem)]' : 'text-[clamp(1.8rem,2vw,2.3rem)]'}`}>System narrative</h3>
                 </div>
-                <Lock className="text-cyan-300" size={18} />
+                <Lock className="text-accent" size={18} />
               </div>
               <div className={compactView ? 'mt-3 space-y-2.5' : 'mt-4 space-y-3'}>
                 {displayOpsFeed.map((item) => (
-                  <div key={item} className={`flex gap-3 rounded-[20px] bg-white/5 px-4 ${compactView ? 'py-3' : 'py-3.5'}`}>
-                    <CheckCircle2 className="mt-0.5 text-emerald-300" size={18} />
+                  <div key={item} className={`flex gap-3 rounded-[20px] bg-surface-hover px-4 ${compactView ? 'py-3' : 'py-3.5'}`}>
+                    <CheckCircle2 className="mt-0.5 text-accent" size={18} />
                     <p className={`text-text-secondary ${compactView ? 'text-xs leading-5 sm:text-sm sm:leading-6' : 'text-sm leading-6'}`}>{item}</p>
                   </div>
                 ))}

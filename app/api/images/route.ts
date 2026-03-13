@@ -21,10 +21,15 @@ export async function POST(req: NextRequest) {
 
   if (openaiKey) {
     try {
+      // DALL-E 3 only supports: 1024x1024, 1792x1024, 1024x1792
+      // Pick the closest valid size based on aspect ratio
+      const isLandscape = width > height
+      const isPortrait = height > width
+      const dalleSize = isLandscape ? '1792x1024' : isPortrait ? '1024x1792' : '1024x1024'
       const response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: { Authorization: `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size: '1024x1024', response_format: 'url' }),
+        body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size: dalleSize, response_format: 'url' }),
       })
       if (response.ok) {
         const data = await response.json()
@@ -58,12 +63,16 @@ export async function POST(req: NextRequest) {
 
   // ── 2. Fallback: Stable Horde (free, distributed, works globally) ───
   try {
+    // Stable Horde requires dimensions to be multiples of 64, max 1024 per side
+    const clamp = (v: number) => Math.min(1024, Math.max(64, Math.round(v / 64) * 64))
+    const hordeW = clamp(width)
+    const hordeH = clamp(height)
     const submitRes = await fetch('https://stablehorde.net/api/v2/generate/async', {
       method: 'POST',
       headers: { 'apikey': '0000000000', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
-        params: { width: 512, height: 512, steps: 20, n: 1, sampler_name: 'k_euler' },
+        params: { width: hordeW, height: hordeH, steps: 20, n: 1, sampler_name: 'k_euler' },
         models: ['stable_diffusion'],
         r2: true,
       }),

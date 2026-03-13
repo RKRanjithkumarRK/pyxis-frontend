@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Mic, ArrowUp, Square, FileText, X, MicOff, AudioLines } from 'lucide-react'
 import { useChat } from '@/contexts/ChatContext'
+import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
 
 interface Props {
@@ -27,6 +28,7 @@ export default function ChatInput({ onSend, onStop, disabled, prefill, onPrefill
   const fileInputRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
   const { isStreaming } = useChat()
+  const { getToken } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -83,9 +85,14 @@ export default function ChatInput({ onSend, onStop, disabled, prefill, onPrefill
     if (binaryExts.includes(ext)) {
       const toastId = toast.loading(`Parsing ${file.name}...`)
       try {
+        const token = await getToken()
         const form = new FormData()
         form.append('file', file)
-        const res = await fetch('/api/parse-file', { method: 'POST', body: form })
+        const res = await fetch('/api/parse-file', {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: form,
+        })
         const data = await res.json()
         if (!res.ok) { toast.error(data.error || 'Failed to parse file', { id: toastId }); return }
         setAttachment({ name: file.name, content: data.text })

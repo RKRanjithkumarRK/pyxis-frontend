@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { PanelLeft, SquarePen } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import PyxisMark from '@/components/brand/PyxisMark'

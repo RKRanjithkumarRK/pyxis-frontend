@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyToken } from '@/lib/auth-helper'
 
 // Judge0 Community Edition — free, no key required
 const JUDGE0 = 'https://ce.judge0.com'
@@ -14,6 +15,9 @@ const LANG_IDS: Record<string, number> = {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await verifyToken(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { language, code } = await req.json()
   const lang = (language || '').toLowerCase()
   const langId = LANG_IDS[lang]

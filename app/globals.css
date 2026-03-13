@@ -7,14 +7,18 @@
   --sidebar: #141722;
   --surface: #1A1D23;
   --surface-muted: #10131A;
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --surface-active: rgba(255, 255, 255, 0.10);
   --border: #2A2F3A;
   --border-light: rgba(106, 126, 175, 0.26);
   --border-lighter: rgba(106, 126, 175, 0.15);
   --text-primary: #E6EAF2;
   --text-secondary: #9AA4B2;
   --text-muted: #6C7390;
+  --text-tertiary: #6C7390;
   --accent: #5B8CFF;
   --accent-strong: #4B6CFD;
+  --accent-hover: #7BA5FF;
   --danger: #EF4444;
   --shadow-soft: 0 20px 40px rgba(5, 9, 20, 0.55);
   --shadow-elevated: 0 35px 80px rgba(5, 9, 20, 0.65);
@@ -24,6 +28,20 @@
   --sidebar-collapsed-width: 64px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Component surface tokens */
+  --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --pill-border: rgba(255, 255, 255, 0.25);
+  --chip-bg: rgba(255, 255, 255, 0.04);
+  --message-bg: rgba(255, 255, 255, 0.04);
+  --message-border: rgba(255, 255, 255, 0.08);
+  --message-user-bg: rgba(255, 255, 255, 0.08);
+  --message-user-border: rgba(255, 255, 255, 0.15);
+  --chat-input-area-bg: rgba(15, 17, 21, 0.9);
+  --chat-header-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+  --chat-board-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
 }
 
 html.light {
@@ -31,14 +49,47 @@ html.light {
   --sidebar: #FFFFFF;
   --surface: #FFFFFF;
   --surface-muted: #F4F6FB;
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --surface-active: rgba(0, 0, 0, 0.08);
   --border: #D6DCEB;
   --border-light: rgba(112, 130, 170, 0.35);
   --border-lighter: rgba(112, 130, 170, 0.18);
   --text-primary: #0E1624;
   --text-secondary: #4A5568;
   --text-muted: #6E7C96;
+  --text-tertiary: #6E7C96;
+  --accent: #5B8CFF;
+  --accent-strong: #4B6CFD;
+  --accent-hover: #4B6CFD;
   --shadow-soft: 0 22px 60px rgba(23, 34, 59, 0.15);
   --shadow-elevated: 0 40px 90px rgba(23, 34, 59, 0.25);
+  /* Component surface tokens — light overrides */
+  --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  --panel-border: rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.07);
+  --pill-border: rgba(0, 0, 0, 0.15);
+  --chip-bg: rgba(0, 0, 0, 0.04);
+  --message-bg: #F4F6FB;
+  --message-border: #D6DCEB;
+  --message-user-bg: #5B8CFF;
+  --message-user-border: #5B8CFF;
+  --chat-input-area-bg: rgba(245, 247, 251, 0.95);
+  --chat-header-bg: #FFFFFF;
+  --chat-board-bg: #FFFFFF;
+}
+
+/* ─── Light-mode overrides ──────────────────────────────────── */
+html.light .message-bubble.user {
+  color: #ffffff;
+}
+
+html.light .message-bubble.user .text-text-primary {
+  color: #ffffff;
+}
+
+html.light body::before {
+  opacity: 0.15;
 }
 
 /* Light-mode chat overrides */
@@ -281,8 +332,8 @@ textarea::placeholder {
 }
 
 .panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
   border-radius: var(--radius-xl);
   padding: 24px;
   box-shadow: var(--shadow-soft);
@@ -291,8 +342,8 @@ textarea::placeholder {
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.4);
@@ -304,7 +355,7 @@ textarea::placeholder {
   gap: 0.35rem;
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--pill-border);
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -317,7 +368,7 @@ textarea::placeholder {
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
   border: 1px solid var(--border-lighter);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--chip-bg);
   font-size: 12px;
   letter-spacing: 0.05em;
 }
@@ -334,7 +385,7 @@ textarea::placeholder {
 
 .chat-board {
   width: min(100%, 960px);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+  background: var(--chat-board-bg);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-elevated);
@@ -347,6 +398,7 @@ textarea::placeholder {
 
 .chat-header {
   padding: 20px 28px;
+  background: var(--chat-header-bg);
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -383,8 +435,8 @@ textarea::placeholder {
 }
 
 .message-bubble {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--message-bg);
+  border: 1px solid var(--message-border);
   padding: 16px 20px;
   border-radius: 20px;
   font-size: 16px;
@@ -394,12 +446,12 @@ textarea::placeholder {
 }
 
 .message-bubble.assistant {
-  background: rgba(11, 14, 21, 0.7);
+  background: var(--message-bg);
 }
 
 .message-bubble.user {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--message-user-bg);
+  border-color: var(--message-user-border);
 }
 
 .message-actions {
@@ -438,7 +490,7 @@ textarea::placeholder {
 .chat-input-area {
   position: sticky;
   bottom: 0;
-  background: rgba(15, 17, 21, 0.9);
+  background: var(--chat-input-area-bg);
   border-top: 1px solid var(--border);
   padding: 16px 30px calc(16px + var(--safe-bottom));
   backdrop-filter: blur(12px);
@@ -450,7 +502,7 @@ textarea::placeholder {
   margin: 0 auto;
   border-radius: 24px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass-bg);
   display: flex;
   flex-direction: column;
   gap: 12px;

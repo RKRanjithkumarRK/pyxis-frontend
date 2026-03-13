@@ -74,7 +74,7 @@ export default function NavLinks() {
     <div className="space-y-4 px-1">
       {isOpen && (
         showSearch ? (
-          <div className="flex items-center gap-2 rounded-[18px] border border-border/80 bg-white/5 px-3 py-3">
+          <div className="flex items-center gap-2 rounded-[18px] border border-border/80 bg-surface-hover px-3 py-3">
             <Search size={15} className="shrink-0 text-text-tertiary" />
             <input
               autoFocus
@@ -96,7 +96,7 @@ export default function NavLinks() {
         ) : (
           <button
             onClick={() => setShowSearch(true)}
-            className="flex w-full items-center gap-3 rounded-[18px] border border-border/80 bg-white/5 px-3 py-3 text-sm text-text-secondary transition-colors hover:border-border hover:text-text-primary"
+            className="flex w-full items-center gap-3 rounded-[18px] border border-border/80 bg-surface-hover px-3 py-3 text-sm text-text-secondary transition-colors hover:border-border hover:text-text-primary"
           >
             <Search size={15} />
             Search conversations
@@ -120,14 +120,14 @@ export default function NavLinks() {
                   onClick={() => router.push(item.href)}
                   className={`flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm transition-all ${
                     active
-                      ? 'bg-white/10 text-text-primary shadow-[0_15px_40px_rgba(91,140,255,0.25)]'
-                      : 'text-text-secondary hover:bg-white/5 hover:text-text-primary'
+                      ? 'bg-surface-active text-text-primary shadow-[0_15px_40px_rgba(91,140,255,0.25)]'
+                      : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
                   }`}
                 >
-                  <item.icon size={16} className={active ? 'text-accent' : 'text-cyan-300'} />
+                  <item.icon size={16} className={active ? 'text-accent' : 'text-text-tertiary'} />
                   {isOpen && <span className="flex-1 text-left">{item.label}</span>}
                   {item.badge && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${active ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-cyan-200'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${active ? 'bg-accent text-white' : 'bg-surface-active text-text-secondary'}`}>
                       {item.badge}
                     </span>
                   )}

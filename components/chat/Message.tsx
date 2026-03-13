@@ -33,6 +33,7 @@ SyntaxHighlighter.registerLanguage('markdown', markdown)
 import { Copy, Check, RefreshCw, ThumbsUp, ThumbsDown, Play, Loader2, Pencil } from 'lucide-react'
 import { Message as MessageType } from '@/types'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Props {
   message: MessageType
@@ -82,6 +83,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   const [isRunning, setIsRunning] = useState(false)
   const [output, setOutput] = useState<string | null>(null)
   const { resolvedTheme } = useTheme()
+  const { getToken } = useAuth()
   const isLight = resolvedTheme === 'light'
 
   const handleCopy = async () => {
@@ -105,9 +107,13 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
         result = await runJavaScript(code)
       } else {
         // Run Python / TypeScript / Bash via server-side Judge0
+        const token = await getToken()
         const res = await fetch('/api/run', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({ language: lang, code }),
         })
         const data = await res.json()
@@ -223,7 +229,6 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
 }
 
 export default function Message({ message, onRegenerate, isLast, index, onEdit }: Props) {
-  const [hovered, setHovered] = useState(false)
   const [copied, setCopied] = useState(false)
   const [liked, setLiked] = useState<boolean | null>(null)
   const isUser = message.role === 'user'
@@ -239,8 +244,6 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
   return (
     <div
       className={`message-row ${isUser ? 'user' : ''}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       {!isUser && (
         <div className="shrink-0 mt-1">
@@ -288,7 +291,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
         <div className="message-actions">
           <button
             onClick={handleCopy}
-            className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-white/5"
+            className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-hover"
             title={isUser ? 'Copy message' : 'Copy response'}
           >
             {copied ? <Check size={15} /> : <Copy size={15} />}
@@ -298,7 +301,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
             onEdit && index !== undefined && (
               <button
                 onClick={() => onEdit(message.content, index)}
-                className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-white/5"
+                className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-hover"
                 title="Edit message"
               >
                 <Pencil size={15} />
@@ -309,7 +312,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
               <button
                 onClick={() => setLiked(liked === true ? null : true)}
                 className={`p-1 rounded-lg transition-colors ${
-                  liked === true ? 'text-accent' : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
+                  liked === true ? 'text-accent' : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                 }`}
                 title="Good response"
               >
@@ -318,7 +321,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
               <button
                 onClick={() => setLiked(liked === false ? null : false)}
                 className={`p-1 rounded-lg transition-colors ${
-                  liked === false ? 'text-danger' : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
+                  liked === false ? 'text-danger' : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                 }`}
                 title="Bad response"
               >
@@ -327,7 +330,7 @@ export default function Message({ message, onRegenerate, isLast, index, onEdit }
               {isLast && onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-white/5"
+                  className="p-1 rounded-lg text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-hover"
                   title="Regenerate response"
                 >
                   <RefreshCw size={15} />

@@ -8,22 +8,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing url param' }, { status: 400 })
   }
 
-  // Only allow Pollinations and known image hosts
-  const allowed = [
+  // Only allow exact hostnames or verified subdomain suffixes (prevent SSRF bypass)
+  const exactHosts = new Set([
     'image.pollinations.ai',
     'cdn.openai.com',
-    // OpenAI DALL-E regional blob storage (varies by Azure region)
-    '.blob.core.windows.net',
-    // Stable Horde CDN
     'stablehorde.net',
-  ]
+  ])
+  // Azure blob storage uses subdomains like <account>.blob.core.windows.net
+  const allowedSuffixes = ['.blob.core.windows.net']
+
   let hostname = ''
   try {
     hostname = new URL(url).hostname
   } catch {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
-  if (!allowed.some(h => hostname.endsWith(h))) {
+
+  const isAllowed =
+    exactHosts.has(hostname) ||
+    allowedSuffixes.some(suffix => hostname.endsWith(suffix) && hostname !== suffix)
+
+  if (!isAllowed) {
     return NextResponse.json({ error: 'Disallowed host' }, { status: 403 })
   }
 

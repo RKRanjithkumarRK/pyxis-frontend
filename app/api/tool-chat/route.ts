@@ -158,24 +158,28 @@ export async function POST(req: NextRequest) {
     ...messages,
   ]
 
-  // 1. GOOGLE AI STUDIO (all 3 keys, fast-fail on 429)
+  // 1. GOOGLE AI STUDIO (all 3 keys, try fallback models on error)
   if (googleKeys.length && !model?.includes('/')) {
-    const googleModel = !model || model === 'gemini-2.5-flash' ? 'gemini-2.0-flash' : model
+    // Use requested Gemini model or default to gemini-2.5-flash; fall back down the list on error
+    const primaryModel = model || 'gemini-2.5-flash'
+    const geminiCandidates = [...new Set([primaryModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'])]
 
     for (const googleKey of googleKeys) {
-      try {
-        const result = await tryProvider(
-          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-          { Authorization: `Bearer ${googleKey}` },
-          { model: googleModel, messages: allMessages, stream, max_tokens: 4096 },
-          stream
-        )
+      for (const googleModel of geminiCandidates) {
+        try {
+          const result = await tryProvider(
+            'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+            { Authorization: `Bearer ${googleKey}` },
+            { model: googleModel, messages: allMessages, stream, max_tokens: 4096 },
+            stream
+          )
 
-        if (result.skip) continue
-        if (result.content !== undefined) return Response.json({ content: result.content })
-        if (result.res) return streamedResponse(result.res, googleModel)
-      } catch {
-        continue
+          if (result.skip) continue
+          if (result.content !== undefined) return Response.json({ content: result.content })
+          if (result.res) return streamedResponse(result.res, googleModel)
+        } catch {
+          continue
+        }
       }
     }
   }
