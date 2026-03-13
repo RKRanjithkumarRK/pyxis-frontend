@@ -87,7 +87,7 @@ export const models: ModelDef[] = [
     name:        'Llama 3.3 70B',
     provider:    'Meta (OpenRouter)',
     description: 'Open-source powerhouse (subject to rate limits)',
-    free:        false,
+    free:        true,
     maxTokens:   4096,
   },
   {
@@ -103,7 +103,7 @@ export const models: ModelDef[] = [
     name:        'DeepSeek V3',
     provider:    'DeepSeek (OpenRouter)',
     description: 'DeepSeek V3 — excellent reasoning (rate limited)',
-    free:        false,
+    free:        true,
     maxTokens:   4096,
   },
 ]
