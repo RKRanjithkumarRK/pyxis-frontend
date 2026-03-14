@@ -849,7 +849,7 @@ ${content}`
       <div className="flex-1 flex overflow-hidden">
 
         {/* ══ LEFT SIDEBAR (240px) ══════════════════════════════════════ */}
-        <div className="w-60 flex-shrink-0 border-r border-border flex flex-col overflow-hidden bg-sidebar">
+        <div className="w-60 flex-shrink-0 border-r border-border flex flex-col min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar scrollable bg-sidebar">
 
           {/* Document Stats */}
           <div className="px-4 pt-4 pb-3 border-b border-border flex-shrink-0">

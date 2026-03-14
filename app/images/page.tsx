@@ -78,8 +78,21 @@ const EXAMPLE_PROMPTS = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function pollinationsUrl(prompt: string, w: number, h: number) {
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true`
+function pollinationsUrl(prompt: string, w: number, h: number, seed?: number) {
+  const seedParam = seed ? `&seed=${seed}` : ''
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true${seedParam}`
+}
+
+function clampSize(width: number, height: number, maxEdge = 1024) {
+  const safeW = Number.isFinite(width) && width > 0 ? width : 1024
+  const safeH = Number.isFinite(height) && height > 0 ? height : 1024
+  const maxDim = Math.max(safeW, safeH)
+  if (maxDim <= maxEdge) return { width: Math.round(safeW), height: Math.round(safeH) }
+  const scale = maxEdge / maxDim
+  return {
+    width: Math.max(256, Math.round(safeW * scale)),
+    height: Math.max(256, Math.round(safeH * scale)),
+  }
 }
 
 function timeAgo(ts: number) {
@@ -308,7 +321,40 @@ export default function ImagesPage() {
     setShowSkeleton(true)
 
     try {
-      const token = await getToken()
+      let token = await getToken()
+      if (!token) {
+        await new Promise(r => setTimeout(r, 350))
+        token = await getToken()
+      }
+
+      const safeSize = clampSize(selectedRatio.width, selectedRatio.height)
+      const fallbackToPollinations = () => {
+        const seed = Math.floor(Math.random() * 999999)
+        const url = pollinationsUrl(finalPrompt, safeSize.width, safeSize.height, seed)
+        const newImg: GalleryImage = {
+          id: `gen-${Date.now()}`,
+          url,
+          prompt: base,
+          style: selectedStyle.label,
+          timestamp: Date.now(),
+          aspectRatio: selectedRatio.id,
+          isNew: true,
+          width: safeSize.width,
+          height: safeSize.height,
+        }
+        setGeneratedImages(prev => [newImg, ...prev])
+        setHistory(prev => [newImg, ...prev].slice(0, 8))
+        setPrompt('')
+        setUploadedImage(null)
+        setUploadedImageName('')
+        toast.success('Image generated!')
+      }
+
+      if (!token) {
+        fallbackToPollinations()
+        return
+      }
+
       const res = await fetch('/api/images', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -322,6 +368,10 @@ export default function ImagesPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
+        if (res.status === 401 || res.status === 503) {
+          fallbackToPollinations()
+          return
+        }
         throw new Error(data.error || 'Generation failed')
       }
 
@@ -351,7 +401,7 @@ export default function ImagesPage() {
       setGenerating(false)
       setShowSkeleton(false)
     }
-  }, [prompt, generating, selectedStyle, selectedRatio, uploadedImage, getToken])
+  }, [prompt, generating, selectedStyle, selectedRatio, selectedModel, uploadedImage, getToken])
 
   const handleDownload = async (img: GalleryImage) => {
     const slug = img.prompt.slice(0, 24).replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '')

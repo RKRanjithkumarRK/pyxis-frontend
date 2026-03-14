@@ -106,7 +106,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] overflow-y-auto bg-bg text-text-primary">
+    <div className="h-[100dvh] min-h-[100dvh] overflow-y-auto bg-bg text-text-primary">
       <div className="hero-noise">
         <nav className="sticky top-0 z-50 border-b border-border/70 bg-bg/70 backdrop-blur-2xl">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
