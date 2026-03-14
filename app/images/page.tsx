@@ -133,12 +133,37 @@ function ImageCard({ img, onExpand, onDownload, onRemix }: ImageCardProps) {
   const [loaded, setLoaded] = useState(false)
   const [errored, setErrored] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
+  const [src, setSrc] = useState(img.url)
+  const [triedProxy, setTriedProxy] = useState(false)
+
+  useEffect(() => {
+    setSrc(img.url)
+    setLoaded(false)
+    setErrored(false)
+    setRetryKey(0)
+    setTriedProxy(false)
+  }, [img.url])
+
+  const toProxyUrl = (url: string) => `/api/images/proxy?url=${encodeURIComponent(url)}`
 
   const handleRetry = (e: React.MouseEvent) => {
     e.stopPropagation()
     setErrored(false)
     setLoaded(false)
+    setTriedProxy(false)
+    setSrc(img.url)
     setRetryKey(k => k + 1)
+  }
+
+  const handleError = () => {
+    if (!triedProxy && !img.url.startsWith('data:') && !img.url.startsWith('/api/images/proxy')) {
+      setTriedProxy(true)
+      setLoaded(false)
+      setErrored(false)
+      setSrc(toProxyUrl(img.url))
+      return
+    }
+    setErrored(true)
   }
 
   return (
@@ -151,11 +176,11 @@ function ImageCard({ img, onExpand, onDownload, onRemix }: ImageCardProps) {
       )}
       {!errored ? (
         <img
-          key={retryKey}
-          src={img.url}
+          key={`${retryKey}-${src}`}
+          src={src}
           alt={img.prompt}
           onLoad={() => setLoaded(true)}
-          onError={() => setErrored(true)}
+          onError={handleError}
           className={`w-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
           loading="lazy"
         />
@@ -316,6 +341,31 @@ export default function ImagesPage() {
     const finalPrompt = uploadedImage
       ? base + ', maintain the style and composition of the reference image' + selectedStyle.suffix
       : base + selectedStyle.suffix
+    const safeSize = clampSize(selectedRatio.width, selectedRatio.height)
+    let fallbackUsed = false
+    const fallbackToPollinations = () => {
+      if (fallbackUsed) return
+      fallbackUsed = true
+      const seed = Math.floor(Math.random() * 999999)
+      const url = pollinationsUrl(finalPrompt, safeSize.width, safeSize.height, seed)
+      const newImg: GalleryImage = {
+        id: `gen-${Date.now()}`,
+        url,
+        prompt: base,
+        style: selectedStyle.label,
+        timestamp: Date.now(),
+        aspectRatio: selectedRatio.id,
+        isNew: true,
+        width: safeSize.width,
+        height: safeSize.height,
+      }
+      setGeneratedImages(prev => [newImg, ...prev])
+      setHistory(prev => [newImg, ...prev].slice(0, 8))
+      setPrompt('')
+      setUploadedImage(null)
+      setUploadedImageName('')
+      toast.success('Image generated!')
+    }
 
     setGenerating(true)
     setShowSkeleton(true)
@@ -325,29 +375,6 @@ export default function ImagesPage() {
       if (!token) {
         await new Promise(r => setTimeout(r, 350))
         token = await getToken()
-      }
-
-      const safeSize = clampSize(selectedRatio.width, selectedRatio.height)
-      const fallbackToPollinations = () => {
-        const seed = Math.floor(Math.random() * 999999)
-        const url = pollinationsUrl(finalPrompt, safeSize.width, safeSize.height, seed)
-        const newImg: GalleryImage = {
-          id: `gen-${Date.now()}`,
-          url,
-          prompt: base,
-          style: selectedStyle.label,
-          timestamp: Date.now(),
-          aspectRatio: selectedRatio.id,
-          isNew: true,
-          width: safeSize.width,
-          height: safeSize.height,
-        }
-        setGeneratedImages(prev => [newImg, ...prev])
-        setHistory(prev => [newImg, ...prev].slice(0, 8))
-        setPrompt('')
-        setUploadedImage(null)
-        setUploadedImageName('')
-        toast.success('Image generated!')
       }
 
       if (!token) {
@@ -395,6 +422,10 @@ export default function ImagesPage() {
       setUploadedImageName('')
       toast.success('Image generated!')
     } catch (err: unknown) {
+      if (!fallbackUsed) {
+        fallbackToPollinations()
+        return
+      }
       const msg = err instanceof Error ? err.message : 'Failed to generate'
       toast.error(msg)
     } finally {

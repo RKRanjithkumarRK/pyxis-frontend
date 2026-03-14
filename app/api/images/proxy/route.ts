@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': 'attachment',
+        'Content-Disposition': 'inline',
         'Cache-Control': 'public, max-age=3600',
       },
     })

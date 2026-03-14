@@ -128,6 +128,7 @@ export default function HubPage() {
   const router = useRouter()
   const [recentRoutes, setRecentRoutes] = useState<string[]>([])
   const [compactView, setCompactView] = useState(false)
+  const [tightView, setTightView] = useState(false)
 
   useEffect(() => {
     try {
@@ -145,7 +146,10 @@ export default function HubPage() {
 
   useEffect(() => {
     const syncCompactView = () => {
-      setCompactView(window.innerHeight < 980 || window.innerWidth < 1680)
+      const height = window.innerHeight
+      const width = window.innerWidth
+      setCompactView(height < 980 || width < 1680)
+      setTightView(height < 820 || width < 1360)
     }
 
     syncCompactView()
@@ -159,8 +163,16 @@ export default function HubPage() {
     return recent.length > 0 ? recent.slice(0, 3) : LAUNCH_MODULES.slice(0, 3)
   }, [recentRoutes])
 
-  const displayLaunchModules = compactView ? LAUNCH_MODULES.slice(0, 6) : LAUNCH_MODULES
-  const displayOpsFeed = compactView ? OPS_FEED.slice(0, 3) : OPS_FEED
+  const displayLaunchModules = tightView
+    ? LAUNCH_MODULES.slice(0, 4)
+    : compactView
+      ? LAUNCH_MODULES.slice(0, 6)
+      : LAUNCH_MODULES
+  const displayOpsFeed = tightView
+    ? OPS_FEED.slice(0, 2)
+    : compactView
+      ? OPS_FEED.slice(0, 3)
+      : OPS_FEED
 
   const launch = (module: LaunchModule) => {
     try {
@@ -172,31 +184,31 @@ export default function HubPage() {
   }
 
   return (
-    <div className={`w-full px-4 sm:px-5 lg:px-6 xl:px-7 2xl:px-8 ${compactView ? 'pb-6 pt-3' : 'pb-8 pt-4'}`}>
-      <div className={`w-full ${compactView ? 'space-y-4' : 'space-y-6'}`}>
+    <div className={`w-full px-4 sm:px-5 lg:px-6 xl:px-7 2xl:px-8 ${tightView ? 'pb-4 pt-2' : compactView ? 'pb-6 pt-3' : 'pb-8 pt-4'}`}>
+      <div className={`w-full ${tightView ? 'space-y-3' : compactView ? 'space-y-4' : 'space-y-6'}`}>
         <section className="panel overflow-hidden rounded-[32px]">
-          <div className={`grid xl:grid-cols-[minmax(0,1.22fr)_minmax(360px,0.78fr)] 2xl:grid-cols-[minmax(0,1.26fr)_minmax(400px,0.74fr)] ${compactView ? 'gap-4 p-5 xl:p-6' : 'gap-6 p-6 xl:p-7'}`}>
+          <div className={`grid xl:grid-cols-[minmax(0,1.22fr)_minmax(360px,0.78fr)] 2xl:grid-cols-[minmax(0,1.26fr)_minmax(400px,0.74fr)] ${tightView ? 'gap-3 p-4 xl:p-5' : compactView ? 'gap-4 p-5 xl:p-6' : 'gap-6 p-6 xl:p-7'}`}>
             <div>
-              <div className={`pill text-sm text-text-secondary ${compactView ? 'mb-4' : 'mb-5'}`}>
+              <div className={`pill text-sm text-text-secondary ${tightView ? 'mb-3' : compactView ? 'mb-4' : 'mb-5'}`}>
                 <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
                 Control Tower live
               </div>
-              <h1 className={`font-display leading-[0.98] text-text-primary ${compactView ? 'text-[clamp(1.95rem,2.7vw,3rem)]' : 'text-[clamp(2.25rem,3vw,3.8rem)]'}`}>
+              <h1 className={`font-display leading-[0.98] text-text-primary ${tightView ? 'text-[clamp(1.7rem,2.35vw,2.6rem)]' : compactView ? 'text-[clamp(1.95rem,2.7vw,3rem)]' : 'text-[clamp(2.25rem,3vw,3.8rem)]'}`}>
                 Welcome to your <span className="text-gradient">Pyxis One</span> workspace.
               </h1>
-              <p className={`max-w-4xl text-text-secondary ${compactView ? 'mt-3 text-sm leading-6 sm:text-[15px] sm:leading-7' : 'mt-4 text-[15px] leading-7 sm:text-base sm:leading-8'}`}>
+              <p className={`max-w-4xl text-text-secondary ${tightView ? 'mt-2.5 text-xs leading-5 sm:text-sm sm:leading-6' : compactView ? 'mt-3 text-sm leading-6 sm:text-[15px] sm:leading-7' : 'mt-4 text-[15px] leading-7 sm:text-base sm:leading-8'}`}>
                 A calmer launch surface for chat, agents, workflows, knowledge, media, and model operations, designed to stay usable across real working screens.
               </p>
 
-              <div className={`grid gap-3 sm:grid-cols-3 ${compactView ? 'mt-4' : 'mt-6'}`}>
+              <div className={`grid gap-3 sm:grid-cols-3 ${tightView ? 'mt-3 gap-2' : compactView ? 'mt-4' : 'mt-6'}`}>
                 {[
                   ['17+', 'Integrated AI surfaces'],
                   ['5', 'Provider lanes currently wired in'],
                   ['1', 'Unified operational shell'],
                 ].map(([value, label]) => (
-                  <div key={label} className={`metric-card rounded-[28px] ${compactView ? 'p-3.5' : 'p-4'}`}>
-                    <p className={`font-display leading-none text-text-primary ${compactView ? 'text-[clamp(1.75rem,2.2vw,2.5rem)]' : 'text-[clamp(2rem,2.8vw,3rem)]'}`}>{value}</p>
-                    <p className={`text-text-secondary ${compactView ? 'mt-1.5 text-xs leading-5 sm:text-sm' : 'mt-2 text-sm leading-6'}`}>{label}</p>
+                  <div key={label} className={`metric-card rounded-[28px] ${tightView ? 'p-3' : compactView ? 'p-3.5' : 'p-4'}`}>
+                    <p className={`font-display leading-none text-text-primary ${tightView ? 'text-[clamp(1.5rem,2vw,2.1rem)]' : compactView ? 'text-[clamp(1.75rem,2.2vw,2.5rem)]' : 'text-[clamp(2rem,2.8vw,3rem)]'}`}>{value}</p>
+                    <p className={`text-text-secondary ${tightView ? 'mt-1 text-[11px] leading-4 sm:text-xs' : compactView ? 'mt-1.5 text-xs leading-5 sm:text-sm' : 'mt-2 text-sm leading-6'}`}>{label}</p>
                   </div>
                 ))}
               </div>
@@ -204,27 +216,27 @@ export default function HubPage() {
 
             <div className={`grid gap-3 sm:grid-cols-2 ${compactView ? 'xl:content-start' : ''}`}>
               {ENTERPRISE_SIGNALS.map((signal) => (
-                <div key={signal.title} className={`glass-panel rounded-[26px] ${compactView ? 'p-3.5' : 'p-4'}`}>
+                <div key={signal.title} className={`glass-panel rounded-[26px] ${tightView ? 'p-3' : compactView ? 'p-3.5' : 'p-4'}`}>
                   <div className="flex items-center justify-between">
-                    <div className={`flex items-center justify-center rounded-2xl bg-surface-hover ${compactView ? 'h-9 w-9' : 'h-10 w-10'}`}>
-                      <signal.icon className="text-accent" size={compactView ? 18 : 20} />
+                    <div className={`flex items-center justify-center rounded-2xl bg-surface-hover ${tightView ? 'h-8 w-8' : compactView ? 'h-9 w-9' : 'h-10 w-10'}`}>
+                      <signal.icon className="text-accent" size={tightView ? 16 : compactView ? 18 : 20} />
                     </div>
                     <span className="pill text-xs text-accent">{signal.value}</span>
                   </div>
-                  <p className={`font-display text-text-primary ${compactView ? 'mt-3 text-[clamp(1.3rem,1.6vw,1.7rem)]' : 'mt-4 text-[clamp(1.55rem,2vw,2rem)]'}`}>{signal.title}</p>
-                  <p className={`text-text-secondary ${compactView ? 'mt-1.5 text-xs leading-5 sm:text-sm sm:leading-6' : 'mt-2 text-sm leading-6'}`}>{signal.detail}</p>
+                  <p className={`font-display text-text-primary ${tightView ? 'mt-2.5 text-[clamp(1.1rem,1.45vw,1.4rem)]' : compactView ? 'mt-3 text-[clamp(1.3rem,1.6vw,1.7rem)]' : 'mt-4 text-[clamp(1.55rem,2vw,2rem)]'}`}>{signal.title}</p>
+                  <p className={`text-text-secondary ${tightView ? 'mt-1 text-[11px] leading-4 sm:text-xs' : compactView ? 'mt-1.5 text-xs leading-5 sm:text-sm sm:leading-6' : 'mt-2 text-sm leading-6'}`}>{signal.detail}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className={`grid xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)] ${compactView ? 'gap-4' : 'gap-5'}`}>
-          <div className={compactView ? 'space-y-4' : 'space-y-6'}>
+        <section className={`grid xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)] ${tightView ? 'gap-3' : compactView ? 'gap-4' : 'gap-5'}`}>
+          <div className={tightView ? 'space-y-3' : compactView ? 'space-y-4' : 'space-y-6'}>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Launch surfaces</p>
-                <h2 className={`mt-2 font-display leading-tight text-text-primary ${compactView ? 'text-[clamp(1.55rem,1.9vw,2.05rem)]' : 'text-[clamp(1.8rem,2.15vw,2.45rem)]'}`}>Start from the right operational lane.</h2>
+                <h2 className={`mt-2 font-display leading-tight text-text-primary ${tightView ? 'text-[clamp(1.35rem,1.65vw,1.8rem)]' : compactView ? 'text-[clamp(1.55rem,1.9vw,2.05rem)]' : 'text-[clamp(1.8rem,2.15vw,2.45rem)]'}`}>Start from the right operational lane.</h2>
               </div>
               <button
                 onClick={() => router.push('/tools/command-center')}
@@ -235,22 +247,22 @@ export default function HubPage() {
               </button>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
+            <div className={`grid gap-4 xl:grid-cols-2 2xl:grid-cols-3 ${tightView ? 'gap-3' : ''}`}>
               {displayLaunchModules.map((module) => (
                 <button
                   key={module.href}
                   onClick={() => launch(module)}
-                  className={`panel group rounded-[28px] text-left transition-transform hover:-translate-y-1 ${compactView ? 'p-4' : 'p-5'}`}
+                  className={`panel group rounded-[28px] text-left transition-transform hover:-translate-y-1 ${tightView ? 'p-3.5' : compactView ? 'p-4' : 'p-5'}`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className={`flex items-center justify-center rounded-2xl bg-surface-hover ${compactView ? 'h-10 w-10' : 'h-11 w-11'}`}>
-                      <module.icon className="text-accent" size={compactView ? 18 : 20} />
+                    <div className={`flex items-center justify-center rounded-2xl bg-surface-hover ${tightView ? 'h-9 w-9' : compactView ? 'h-10 w-10' : 'h-11 w-11'}`}>
+                      <module.icon className="text-accent" size={tightView ? 16 : compactView ? 18 : 20} />
                     </div>
                     <span className="pill text-xs text-text-secondary">{module.tag}</span>
                   </div>
-                  <h3 className={`font-display text-text-primary ${compactView ? 'mt-4 text-[clamp(1.2rem,1.45vw,1.55rem)]' : 'mt-5 text-[clamp(1.45rem,1.8vw,2rem)]'}`}>{module.title}</h3>
-                  <p className={`text-text-secondary ${compactView ? 'mt-2 text-xs leading-5 sm:text-sm' : 'mt-3 text-sm leading-6'}`}>{module.description}</p>
-                  <div className={`flex items-center justify-between ${compactView ? 'mt-4' : 'mt-5'}`}>
+                  <h3 className={`font-display text-text-primary ${tightView ? 'mt-3 text-[clamp(1.05rem,1.35vw,1.35rem)]' : compactView ? 'mt-4 text-[clamp(1.2rem,1.45vw,1.55rem)]' : 'mt-5 text-[clamp(1.45rem,1.8vw,2rem)]'}`}>{module.title}</h3>
+                  <p className={`text-text-secondary ${tightView ? 'mt-1.5 text-[11px] leading-4 sm:text-xs' : compactView ? 'mt-2 text-xs leading-5 sm:text-sm' : 'mt-3 text-sm leading-6'}`}>{module.description}</p>
+                  <div className={`flex items-center justify-between ${tightView ? 'mt-3' : compactView ? 'mt-4' : 'mt-5'}`}>
                     <span className="text-sm font-semibold text-text-primary">{module.stat}</span>
                     <span className="inline-flex items-center gap-1 text-sm text-text-tertiary transition-colors group-hover:text-text-primary">
                       Launch
@@ -262,25 +274,25 @@ export default function HubPage() {
             </div>
           </div>
 
-          <div className={compactView ? 'space-y-4' : 'space-y-6'}>
-            <div className={`panel rounded-[28px] ${compactView ? 'p-4' : 'p-5'}`}>
+          <div className={tightView ? 'space-y-3' : compactView ? 'space-y-4' : 'space-y-6'}>
+            <div className={`panel rounded-[28px] ${tightView ? 'p-3.5' : compactView ? 'p-4' : 'p-5'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Momentum</p>
-                  <h2 className={`mt-2 font-display leading-tight text-text-primary ${compactView ? 'text-[clamp(1.7rem,2vw,2.2rem)]' : 'text-[clamp(2rem,2.3vw,2.7rem)]'}`}>Continue from your strongest surfaces.</h2>
+                  <h2 className={`mt-2 font-display leading-tight text-text-primary ${tightView ? 'text-[clamp(1.5rem,1.75vw,1.95rem)]' : compactView ? 'text-[clamp(1.7rem,2vw,2.2rem)]' : 'text-[clamp(2rem,2.3vw,2.7rem)]'}`}>Continue from your strongest surfaces.</h2>
                 </div>
                 <Activity className="text-accent" size={18} />
               </div>
 
-              <div className={compactView ? 'mt-4 space-y-2.5' : 'mt-5 space-y-3'}>
+              <div className={tightView ? 'mt-3 space-y-2' : compactView ? 'mt-4 space-y-2.5' : 'mt-5 space-y-3'}>
                 {featuredMomentum.map((module, index) => (
                   <button
                     key={module.href}
                     onClick={() => launch(module)}
-                    className={`flex w-full items-center gap-3 rounded-[20px] border border-border/80 bg-surface-hover px-4 text-left transition-colors hover:bg-surface-hover ${compactView ? 'py-3' : 'py-3.5'}`}
+                    className={`flex w-full items-center gap-3 rounded-[20px] border border-border/80 bg-surface-hover px-4 text-left transition-colors hover:bg-surface-hover ${tightView ? 'py-2.5' : compactView ? 'py-3' : 'py-3.5'}`}
                   >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-hover text-text-primary">
-                      <module.icon size={18} />
+                    <div className={`flex items-center justify-center rounded-2xl bg-surface-hover text-text-primary ${tightView ? 'h-9 w-9' : 'h-11 w-11'}`}>
+                      <module.icon size={tightView ? 16 : 18} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-text-primary">{module.title}</p>
@@ -294,19 +306,19 @@ export default function HubPage() {
               </div>
             </div>
 
-            <div className={`glass-panel rounded-[28px] ${compactView ? 'p-4' : 'p-5'}`}>
+            <div className={`glass-panel rounded-[28px] ${tightView ? 'p-3.5' : compactView ? 'p-4' : 'p-5'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm uppercase tracking-[0.28em] text-text-tertiary">Ops feed</p>
-                  <h3 className={`mt-2 font-display text-text-primary ${compactView ? 'text-[clamp(1.5rem,1.8vw,1.95rem)]' : 'text-[clamp(1.8rem,2vw,2.3rem)]'}`}>System narrative</h3>
+                  <h3 className={`mt-2 font-display text-text-primary ${tightView ? 'text-[clamp(1.35rem,1.6vw,1.7rem)]' : compactView ? 'text-[clamp(1.5rem,1.8vw,1.95rem)]' : 'text-[clamp(1.8rem,2vw,2.3rem)]'}`}>System narrative</h3>
                 </div>
                 <Lock className="text-accent" size={18} />
               </div>
-              <div className={compactView ? 'mt-3 space-y-2.5' : 'mt-4 space-y-3'}>
+              <div className={tightView ? 'mt-2.5 space-y-2' : compactView ? 'mt-3 space-y-2.5' : 'mt-4 space-y-3'}>
                 {displayOpsFeed.map((item) => (
-                  <div key={item} className={`flex gap-3 rounded-[20px] bg-surface-hover px-4 ${compactView ? 'py-3' : 'py-3.5'}`}>
+                  <div key={item} className={`flex gap-3 rounded-[20px] bg-surface-hover px-4 ${tightView ? 'py-2.5' : compactView ? 'py-3' : 'py-3.5'}`}>
                     <CheckCircle2 className="mt-0.5 text-accent" size={18} />
-                    <p className={`text-text-secondary ${compactView ? 'text-xs leading-5 sm:text-sm sm:leading-6' : 'text-sm leading-6'}`}>{item}</p>
+                    <p className={`text-text-secondary ${tightView ? 'text-[11px] leading-4 sm:text-xs' : compactView ? 'text-xs leading-5 sm:text-sm sm:leading-6' : 'text-sm leading-6'}`}>{item}</p>
                   </div>
                 ))}
               </div>
