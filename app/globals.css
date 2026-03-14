@@ -288,6 +288,16 @@ textarea::placeholder {
   max-width: var(--sidebar-collapsed-width);
 }
 
+.sidebar.sidebar-collapsed .sidebar-shell {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.sidebar-collapsed .sidebar-scroll {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 .sidebar-shell {
   display: flex;
   flex-direction: column;

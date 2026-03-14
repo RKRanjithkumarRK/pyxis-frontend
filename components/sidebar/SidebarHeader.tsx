@@ -18,35 +18,44 @@ export default function SidebarHeader() {
   }
 
   return (
-    <div className="px-3 pb-3 pt-3">
-      <div className="flex items-center justify-between gap-3">
-        <button
-          onClick={() => router.push('/hub')}
-          className="flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          title="Open workspace home"
-        >
-          <PyxisMark size={36} />
-          {isOpen && (
+    <div className={`${isOpen ? 'px-3' : 'px-1'} pb-3 pt-3`}>
+      {isOpen ? (
+        /* ── Expanded layout ── */
+        <div className="flex items-center justify-between gap-3">
+          <button
+            onClick={() => router.push('/hub')}
+            className="flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            title="Open workspace home"
+          >
+            <PyxisMark size={36} />
             <div className="min-w-0 text-left">
               <p className="font-display text-lg leading-none text-text-primary">Pyxis One</p>
               <p className="text-[11px] uppercase tracking-[0.25em] text-text-muted">AI operating shell</p>
             </div>
-          )}
-        </button>
+          </button>
 
-        <button
-          onClick={toggle}
-          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-surface text-text-secondary transition-colors hover:border-border hover:text-text-primary"
-          title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-        >
-          <PanelLeft
-            size={18}
-            className={`transition-transform ${isOpen ? 'rotate-0' : 'rotate-180'}`}
-          />
-        </button>
-      </div>
+          <button
+            onClick={toggle}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-surface text-text-secondary transition-colors hover:border-border hover:text-text-primary"
+            title="Collapse sidebar"
+          >
+            <PanelLeft size={18} />
+          </button>
+        </div>
+      ) : (
+        /* ── Collapsed layout — centered column ── */
+        <div className="flex flex-col items-center gap-2">
+          <button
+            onClick={toggle}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-surface text-text-secondary transition-colors hover:border-border hover:text-text-primary"
+            title="Expand sidebar"
+          >
+            <PanelLeft size={18} className="rotate-180" />
+          </button>
+        </div>
+      )}
 
-      <div className="mt-3">
+      <div className={isOpen ? 'mt-3' : 'mt-2'}>
         <button
           onClick={handleNewChat}
           className={`w-full flex items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${

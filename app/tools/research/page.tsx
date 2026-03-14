@@ -281,11 +281,11 @@ export default function ResearchPage() {
                       ? 'border-cyan-400/40 bg-cyan-400/10'
                       : stage.complete
                         ? 'border-emerald-400/30 bg-emerald-400/10'
-                        : 'border-border/80 bg-white/5'
+                        : 'border-border/80 bg-surface-hover'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-active">
                       <stage.icon size={18} className={stage.complete ? 'text-emerald-300' : stage.active ? 'text-cyan-300' : 'text-text-secondary'} />
                     </div>
                     {stage.complete ? (
@@ -351,7 +351,7 @@ export default function ResearchPage() {
                     key={option.id}
                     onClick={() => setDepth(option.id)}
                     className={`w-full rounded-[22px] border px-4 py-4 text-left transition-colors ${
-                      depth === option.id ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-border/80 bg-white/5 hover:bg-white/8'
+                      depth === option.id ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-border/80 bg-surface-hover hover:bg-surface-active'
                     }`}
                   >
                     <p className="text-sm font-semibold text-text-primary">{option.label}</p>
@@ -369,10 +369,10 @@ export default function ResearchPage() {
                     key={option.id}
                     onClick={() => setDeliverable(option.id)}
                     className={`flex items-center gap-3 rounded-[22px] border px-4 py-4 text-left transition-colors ${
-                      deliverable === option.id ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-border/80 bg-white/5 hover:bg-white/8'
+                      deliverable === option.id ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-border/80 bg-surface-hover hover:bg-surface-active'
                     }`}
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface-active">
                       <option.icon size={16} className="text-cyan-300" />
                     </div>
                     <span className="text-sm font-semibold text-text-primary">{option.label}</span>
@@ -394,7 +394,7 @@ export default function ResearchPage() {
                 <button
                   onClick={() => runResearch()}
                   disabled={phase !== 'idle'}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition-transform hover:scale-[1.02] disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-50"
                 >
                   {phase === 'idle' ? <Sparkles size={16} /> : <Loader2 size={16} className="animate-spin" />}
                   {phase === 'idle' ? 'Run deep research' : phase === 'collecting' ? 'Collecting sources' : 'Synthesizing brief'}
@@ -442,7 +442,7 @@ export default function ResearchPage() {
               </div>
 
               {report ? (
-                <div className="mt-6 rounded-[24px] border border-border/80 bg-white/5 px-6 py-5">
+                <div className="mt-6 rounded-[24px] border border-border/80 bg-surface-hover px-6 py-5">
                   <div className="markdown-body text-sm text-text-primary">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
                   </div>
@@ -471,7 +471,7 @@ export default function ResearchPage() {
                         href={source.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-start gap-3 rounded-[22px] border border-border/80 bg-white/5 px-4 py-4 transition-colors hover:bg-white/8"
+                        className="flex items-start gap-3 rounded-[22px] border border-border/80 bg-surface-hover px-4 py-4 transition-colors hover:bg-surface-active"
                       >
                         <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/15 text-[11px] font-semibold text-cyan-200">
                           {index + 1}

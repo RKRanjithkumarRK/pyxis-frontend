@@ -587,16 +587,16 @@ export default function GeneratePage() {
               {/* Idle */}
               {!generating && !videoUrl && !vidError && (
                 <div className="text-center space-y-3 select-none">
-                  <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mx-auto border border-white/10">
-                    <Video size={36} className="text-white/20" />
+                  <div className="w-20 h-20 rounded-2xl bg-surface-active flex items-center justify-center mx-auto border border-border">
+                    <Video size={36} className="text-muted" />
                   </div>
-                  <p className="text-white/50 text-xl font-semibold">Bring your ideas to life.</p>
-                  <p className="text-white/25 text-sm">
+                  <p className="text-secondary text-xl font-semibold">Bring your ideas to life.</p>
+                  <p className="text-muted text-sm">
                     {tab === 'img2vid' ? 'Upload an image to animate with AI.' : 'Enter a prompt to generate a real AI video.'}
                   </p>
                   <div className="flex items-center justify-center gap-2 mt-4">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                    <p className="text-white/30 text-xs capitalize">{provider} · Ready</p>
+                    <p className="text-muted text-xs capitalize">{provider} · Ready</p>
                   </div>
                 </div>
               )}
@@ -621,7 +621,7 @@ export default function GeneratePage() {
                   </p>
 
                   {/* Progress bar */}
-                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-surface-active rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-violet-500 via-pink-500 to-cyan-500 rounded-full transition-all duration-700 ease-out"
                       style={{ width: `${Math.max(pct, 3)}%` }}
@@ -670,7 +670,7 @@ export default function GeneratePage() {
                 <div className="w-full max-w-2xl space-y-4">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold text-white">{videoType}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/10 text-white/60">AI Generated</span>
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-surface-active text-muted">AI Generated</span>
                     <span className="text-xs px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/20 capitalize">{provider}</span>
                   </div>
 
@@ -686,7 +686,7 @@ export default function GeneratePage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => { setVideoUrl(''); setPct(0); setVideoType('') }}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 text-white/70 hover:bg-white/15 text-xs font-medium transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-hover text-secondary hover:bg-surface-active text-xs font-medium transition-colors"
                     >
                       <RefreshCw size={12} />Regenerate
                     </button>

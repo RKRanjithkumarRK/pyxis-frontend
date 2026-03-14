@@ -106,14 +106,14 @@ function timeAgo(ts: number) {
 
 function SkeletonCard() {
   return (
-    <div className="break-inside-avoid mb-4 rounded-2xl overflow-hidden bg-gray-100 animate-pulse" style={{ height: 280 }}>
-      <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-100 flex flex-col items-center justify-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-          <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+    <div className="break-inside-avoid mb-4 rounded-2xl overflow-hidden bg-surface-muted animate-pulse" style={{ height: 280 }}>
+      <div className="w-full h-full bg-gradient-to-br from-surface-hover to-surface-muted flex flex-col items-center justify-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-surface-active flex items-center justify-center">
+          <Loader2 className="w-5 h-5 text-muted animate-spin" />
         </div>
         <div className="space-y-2 text-center">
-          <div className="h-2 w-32 bg-gray-300 rounded mx-auto" />
-          <div className="h-2 w-20 bg-gray-200 rounded mx-auto" />
+          <div className="h-2 w-32 bg-surface-hover rounded mx-auto" />
+          <div className="h-2 w-20 bg-surface-hover rounded mx-auto" />
         </div>
       </div>
     </div>
@@ -168,11 +168,11 @@ function ImageCard({ img, onExpand, onDownload, onRemix }: ImageCardProps) {
 
   return (
     <div
-      className="break-inside-avoid mb-4 group relative rounded-2xl overflow-hidden bg-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+      className="break-inside-avoid mb-4 group relative rounded-2xl overflow-hidden bg-surface-muted shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
       style={{ transform: 'translateZ(0)' }}
     >
       {!loaded && !errored && (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse" style={{ minHeight: 200 }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-surface-hover to-surface-muted animate-pulse" style={{ minHeight: 200 }} />
       )}
       {!errored ? (
         <img
@@ -185,14 +185,14 @@ function ImageCard({ img, onExpand, onDownload, onRemix }: ImageCardProps) {
           loading="lazy"
         />
       ) : (
-        <div className="w-full h-48 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-gray-100 to-gray-50">
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-            <ImageIcon className="w-4 h-4 text-gray-400" />
+        <div className="w-full h-48 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-muted to-bg">
+          <div className="w-10 h-10 rounded-full bg-surface-hover flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-muted" />
           </div>
-          <p className="text-gray-400 text-xs text-center px-4 leading-relaxed line-clamp-2">{img.prompt}</p>
+          <p className="text-muted text-xs text-center px-4 leading-relaxed line-clamp-2">{img.prompt}</p>
           <button
             onClick={handleRetry}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-500 text-xs hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface border border-border text-secondary text-xs hover:bg-surface-hover hover:text-primary transition-colors shadow-sm"
           >
             <RefreshCw className="w-3 h-3" /> Retry
           </button>
@@ -474,14 +474,14 @@ export default function ImagesPage() {
     <div className="min-h-0 flex flex-col bg-transparent text-text-primary">
 
       {/* ── Hero Header ───────────────────────────────────────────── */}
-      <div className="w-full px-6 pt-10 pb-6 flex flex-col items-center text-center border-b border-gray-100">
+      <div className="w-full px-6 pt-10 pb-6 flex flex-col items-center text-center border-b border-border">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-200">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
             <ImageIcon className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">AI Image Studio</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">AI Image Studio</h1>
         </div>
-        <p className="text-gray-500 text-base max-w-lg">
+        <p className="text-secondary text-base max-w-lg">
           Create stunning visuals with AI — free, instant, no account needed
         </p>
       </div>
@@ -490,32 +490,32 @@ export default function ImagesPage() {
       <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
 
         {/* ── Prompt Card ─────────────────────────────────────────── */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden">
 
           {/* Model selector bar */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50/60">
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Model</span>
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface-muted/60">
+            <span className="text-xs text-muted font-medium uppercase tracking-wide">Model</span>
             <div className="relative" ref={modelDropdownRef}>
               <button
                 onClick={() => setModelOpen(o => !o)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-purple-300 transition-all shadow-sm"
+                className="flex items-center gap-2 px-3 py-1.5 bg-surface border border-border rounded-lg text-sm font-medium text-primary hover:border-purple-400 transition-all shadow-sm"
               >
                 {selectedModel.label}
                 {selectedModel.badge && (
-                  <span className="px-1.5 py-0.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-600 text-[10px] font-semibold rounded">
+                  <span className="px-1.5 py-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 text-[10px] font-semibold rounded">
                     {selectedModel.badge}
                   </span>
                 )}
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-muted" />
               </button>
               {modelOpen && (
-                <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-30 min-w-[200px] overflow-hidden">
+                <div className="absolute top-full left-0 mt-1.5 bg-surface border border-border rounded-xl shadow-xl z-30 min-w-[200px] overflow-hidden">
                   {MODELS.map(m => (
                     <button
                       key={m.id}
                       onClick={() => { setSelectedModel(m); setModelOpen(false) }}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-purple-50 transition-colors ${
-                        selectedModel.id === m.id ? 'text-purple-600 font-medium bg-purple-50/50' : 'text-gray-700'
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors ${
+                        selectedModel.id === m.id ? 'text-purple-400 font-medium bg-surface-hover' : 'text-primary'
                       }`}
                     >
                       <span>{m.label}</span>
@@ -546,7 +546,7 @@ export default function ImagesPage() {
               onChange={e => setPrompt(e.target.value.slice(0, 5000))}
               onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleGenerate() }}
               placeholder="Describe an image or upload your photo, and I'll create something unique…"
-              className="w-full resize-none outline-none text-gray-800 text-base placeholder:text-gray-400 min-h-[100px] leading-relaxed"
+              className="w-full resize-none outline-none bg-transparent text-primary text-base placeholder:text-muted min-h-[100px] leading-relaxed"
               rows={4}
               disabled={generating}
             />
@@ -557,7 +557,7 @@ export default function ImagesPage() {
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all text-xs"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted hover:text-secondary hover:bg-surface-hover rounded-lg transition-all text-xs"
                   title="Upload reference image"
                 >
                   <Paperclip className="w-3.5 h-3.5" />
@@ -575,7 +575,7 @@ export default function ImagesPage() {
                 </button>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-300">{prompt.length}/5000</span>
+                <span className="text-xs text-muted">{prompt.length}/5000</span>
                 <button
                   onClick={handleGenerate}
                   disabled={!prompt.trim() || generating}
@@ -593,7 +593,7 @@ export default function ImagesPage() {
         <div className="space-y-3">
           {/* Aspect ratio */}
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wide w-20 shrink-0">Ratio</span>
+            <span className="text-xs text-muted font-medium uppercase tracking-wide w-20 shrink-0">Ratio</span>
             <div className="flex items-center gap-2">
               {ASPECT_RATIOS.map(r => (
                 <button
@@ -601,19 +601,19 @@ export default function ImagesPage() {
                   onClick={() => setSelectedRatio(r)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                     selectedRatio.id === r.id
-                      ? 'bg-gray-900 text-white border-gray-900'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                      ? 'bg-accent text-white border-accent'
+                      : 'bg-surface text-secondary border-border hover:border-border-light'
                   }`}
                 >
                   <span>{r.label}</span>
-                  <span className={`ml-1 ${selectedRatio.id === r.id ? 'text-gray-300' : 'text-gray-400'}`}>
+                  <span className={`ml-1 ${selectedRatio.id === r.id ? 'text-white/70' : 'text-muted'}`}>
                     {r.short}
                   </span>
                 </button>
               ))}
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Quality</span>
+              <span className="text-xs text-muted font-medium uppercase tracking-wide">Quality</span>
               {QUALITY_OPTIONS.map(q => (
                 <button
                   key={q.id}
@@ -621,7 +621,7 @@ export default function ImagesPage() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                     selectedQuality.id === q.id
                       ? 'bg-purple-600 text-white border-purple-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'
+                      : 'bg-surface text-secondary border-border hover:border-purple-400'
                   }`}
                 >
                   {q.label}
@@ -632,7 +632,7 @@ export default function ImagesPage() {
 
           {/* Style presets */}
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wide w-20 shrink-0">Style</span>
+            <span className="text-xs text-muted font-medium uppercase tracking-wide w-20 shrink-0">Style</span>
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
               {STYLE_PRESETS.map(s => (
                 <button
@@ -641,7 +641,7 @@ export default function ImagesPage() {
                   className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border flex-shrink-0 ${
                     selectedStyle.id === s.id
                       ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white border-transparent shadow-sm'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300 hover:text-purple-600'
+                      : 'bg-surface text-secondary border-border hover:border-purple-400 hover:text-purple-400'
                   }`}
                 >
                   {s.label}
@@ -654,9 +654,9 @@ export default function ImagesPage() {
         {/* ── Gallery ─────────────────────────────────────────────── */}
         <div>
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-primary">
               Gallery
-              <span className="ml-2 text-sm font-normal text-gray-400">
+              <span className="ml-2 text-sm font-normal text-muted">
                 {generatedImages.length > 0 ? `${generatedImages.length} generated · ` : ''}
                 {exampleImages.length} examples
               </span>
@@ -664,7 +664,7 @@ export default function ImagesPage() {
             {generatedImages.length > 0 && (
               <button
                 onClick={() => setGeneratedImages([])}
-                className="text-xs text-gray-400 hover:text-red-400 transition-colors"
+                className="text-xs text-muted hover:text-red-400 transition-colors"
               >
                 Clear generated
               </button>
@@ -694,8 +694,8 @@ export default function ImagesPage() {
 
         {/* ── History Strip ────────────────────────────────────────── */}
         {history.length > 0 && (
-          <div className="border-t border-gray-100 pt-6">
-            <h3 className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-3 flex items-center gap-2">
+          <div className="border-t border-border pt-6">
+            <h3 className="text-xs text-muted font-medium uppercase tracking-wide mb-3 flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" /> Recent Generations
             </h3>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
@@ -722,7 +722,7 @@ export default function ImagesPage() {
           onClick={() => setLightbox(null)}
         >
           <div
-            className="relative max-w-4xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl"
+            className="relative max-w-4xl w-full bg-surface rounded-2xl overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
             {/* Close */}
@@ -737,15 +737,15 @@ export default function ImagesPage() {
             <img
               src={lightbox.url}
               alt={lightbox.prompt}
-              className="w-full max-h-[70vh] object-contain bg-gray-50"
+              className="w-full max-h-[70vh] object-contain bg-surface-muted"
             />
 
             {/* Info panel */}
-            <div className="p-5 border-t border-gray-100">
+            <div className="p-5 border-t border-border">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 mb-1 leading-snug">{lightbox.prompt}</p>
-                  <div className="flex items-center gap-3 text-xs text-gray-400">
+                  <p className="text-sm font-medium text-primary mb-1 leading-snug">{lightbox.prompt}</p>
+                  <div className="flex items-center gap-3 text-xs text-muted">
                     <span className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full font-medium">{lightbox.style}</span>
                     <span>{lightbox.aspectRatio}</span>
                     {lightbox.timestamp > 0 && <span>{timeAgo(lightbox.timestamp)}</span>}
@@ -754,7 +754,7 @@ export default function ImagesPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => { handleRemix(lightbox.prompt); setLightbox(null) }}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-surface-hover hover:bg-surface-active rounded-lg text-sm text-primary transition-all"
                   >
                     <Wand2 className="w-3.5 h-3.5" /> Remix
                   </button>

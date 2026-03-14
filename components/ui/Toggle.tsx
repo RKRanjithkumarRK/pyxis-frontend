@@ -11,7 +11,7 @@ export default function Toggle({ checked, onChange, disabled }: Props) {
     <button
       onClick={() => !disabled && onChange(!checked)}
       className={`relative w-10 h-6 rounded-full transition-colors ${
-        checked ? 'bg-accent' : 'bg-surface-hover'
+        checked ? 'bg-accent' : 'bg-border'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <div

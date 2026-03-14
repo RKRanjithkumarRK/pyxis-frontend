@@ -708,7 +708,7 @@ export default function VoicePage() {
                 onClick={toggleMute}
                 style={{
                   width: 52, height: 52, borderRadius: '50%',
-                  background: muted ? '#ef4444' : 'var(--surface)',
+                  background: muted ? 'var(--danger)' : 'var(--surface)',
                   border: muted ? 'none' : '1px solid var(--border)',
                   cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

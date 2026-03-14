@@ -25,7 +25,7 @@ function LayoutInner({ children }: { children: React.ReactNode }) {
         {!isOpen && (
           <button
             onClick={toggle}
-            className="self-start mt-2 ml-2 p-2 rounded-lg btn-ghost text-text-secondary hover:text-text-primary shrink-0"
+            className="min-[1180px]:hidden self-start mt-2 ml-2 p-2 rounded-lg btn-ghost text-text-secondary hover:text-text-primary shrink-0"
           >
             <PanelLeft size={20} />
           </button>

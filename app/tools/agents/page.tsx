@@ -389,7 +389,7 @@ type ConvoStore = Record<string, Message[]>
 
 function CapabilityBar({ value, color }: { value: number; color: string }) {
   return (
-    <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden">
+    <div className="w-full h-1 rounded-full bg-surface-active overflow-hidden">
       <div
         className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-700`}
         style={{ width: `${value}%` }}
@@ -514,7 +514,7 @@ function TypingDots() {
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className="w-2 h-2 rounded-full bg-white/40 animate-bounce"
+          className="w-2 h-2 rounded-full bg-surface-active animate-bounce"
           style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }}
         />
       ))}
@@ -1105,27 +1105,27 @@ export default function AgentsPage() {
                 {/* Left tools */}
                 <div className="flex items-center gap-1">
                   <button
-                    className="p-1.5 rounded-lg text-white/25 hover:text-white/60 transition-colors hover:bg-white/5"
+                    className="p-1.5 rounded-lg text-muted hover:text-secondary transition-colors hover:bg-surface-hover"
                     title="Attach file (coming soon)"
                     disabled
                   >
                     <Paperclip size={14} />
                   </button>
                   <button
-                    className="p-1.5 rounded-lg text-white/25 hover:text-white/60 transition-colors hover:bg-white/5"
+                    className="p-1.5 rounded-lg text-muted hover:text-secondary transition-colors hover:bg-surface-hover"
                     title="Voice input (coming soon)"
                     disabled
                   >
                     <Mic size={14} />
                   </button>
-                  <span className="text-[10px] text-white/20 ml-1 hidden sm:inline">
+                  <span className="text-[10px] text-muted ml-1 hidden sm:inline">
                     Shift+Enter for new line
                   </span>
                 </div>
 
                 {/* Right: Gemini label + send */}
                 <div className="flex items-center gap-2.5">
-                  <span className="text-[10px] text-white/20 hidden sm:inline">
+                  <span className="text-[10px] text-muted hidden sm:inline">
                     Powered by Gemini
                   </span>
                   <button
@@ -1155,7 +1155,7 @@ export default function AgentsPage() {
             </div>
 
             {/* Footer label */}
-            <p className="text-center text-[10px] text-white/20 mt-2">
+            <p className="text-center text-[10px] text-muted mt-2">
               {selectedAgent.name} · AI can make mistakes · Verify important information
             </p>
           </div>

@@ -71,7 +71,7 @@ export default function NavLinks() {
   const router = useRouter()
 
   return (
-    <div className="space-y-4 px-1">
+    <div className={`${isOpen ? 'space-y-4 px-1' : 'space-y-1 px-0'}`}>
       {isOpen && (
         showSearch ? (
           <div className="flex items-center gap-2 rounded-[18px] border border-border/80 bg-surface-hover px-3 py-3">
@@ -118,7 +118,10 @@ export default function NavLinks() {
                 <button
                   key={item.href}
                   onClick={() => router.push(item.href)}
-                  className={`flex w-full items-center gap-3 rounded-[18px] px-3 py-3 text-sm transition-all ${
+                  title={!isOpen ? item.label : undefined}
+                  className={`flex w-full items-center rounded-[18px] py-3 text-sm transition-all ${
+                    isOpen ? 'gap-3 px-3' : 'justify-center px-2'
+                  } ${
                     active
                       ? 'bg-surface-active text-text-primary shadow-[0_15px_40px_rgba(91,140,255,0.25)]'
                       : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
@@ -126,7 +129,7 @@ export default function NavLinks() {
                 >
                   <item.icon size={16} className={active ? 'text-accent' : 'text-text-tertiary'} />
                   {isOpen && <span className="flex-1 text-left">{item.label}</span>}
-                  {item.badge && (
+                  {isOpen && item.badge && (
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${active ? 'bg-accent text-white' : 'bg-surface-active text-text-secondary'}`}>
                       {item.badge}
                     </span>

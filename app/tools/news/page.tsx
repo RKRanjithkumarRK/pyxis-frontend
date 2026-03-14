@@ -173,7 +173,7 @@ export default function NewsPage() {
                   ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
                   : 'bg-surface text-text-secondary border border-border hover:text-text-primary'
               }`}>
-              {src !== 'All' && <span className={`w-1.5 h-1.5 rounded-full ${SOURCE_CONFIG[src]?.dot || 'bg-gray-400'}`} />}
+              {src !== 'All' && <span className={`w-1.5 h-1.5 rounded-full ${SOURCE_CONFIG[src]?.dot || 'bg-muted'}`} />}
               {src}
               {sourceCounts[src] !== undefined && (
                 <span className="text-[10px] opacity-60">({sourceCounts[src]})</span>

@@ -314,7 +314,7 @@ export default function ChatView({ conversationId }: Props) {
               {!isOpen && (
                 <button
                   onClick={toggle}
-                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/80 bg-surface text-text-secondary transition-colors hover:border-border hover:text-text-primary"
+                  className="min-[1180px]:hidden flex h-10 w-10 items-center justify-center rounded-2xl border border-border/80 bg-surface text-text-secondary transition-colors hover:border-border hover:text-text-primary"
                   title="Open sidebar"
                 >
                   <PanelLeft size={18} />

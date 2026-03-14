@@ -26,7 +26,7 @@ function LayoutInner({ children }: { children: React.ReactNode }) {
         {!isOpen && (
           <button
             onClick={toggle}
-            className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-border bg-surface/90 px-3 py-2 text-sm text-text-secondary backdrop-blur-xl transition-colors hover:border-border-light hover:text-text-primary"
+            className="min-[1180px]:hidden absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-border bg-surface/90 px-3 py-2 text-sm text-text-secondary backdrop-blur-xl transition-colors hover:border-border-light hover:text-text-primary"
           >
             <PanelLeft size={16} />
             Menu
