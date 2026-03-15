@@ -368,8 +368,7 @@ export default function ImagesPage() {
       if (fallbackUsed) return
       fallbackUsed = true
       const seed = Math.floor(Math.random() * 999999)
-      const directUrl = pollinationsUrl(finalPrompt, safeSize.width, safeSize.height, seed)
-      const url = `/api/images/proxy?url=${encodeURIComponent(directUrl)}`
+      const url = pollinationsUrl(finalPrompt, safeSize.width, safeSize.height, seed)
       const newImg: GalleryImage = {
         id: `gen-${Date.now()}`,
         url,
@@ -468,7 +467,13 @@ export default function ImagesPage() {
         const bytes = new Uint8Array(binary.length)
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
         blob = new Blob([bytes], { type: mime })
+      } else if (img.url.includes('pollinations.ai')) {
+        // Pollinations blocks server-side fetches (Vercel IPs) — open directly in new tab
+        window.open(img.url, '_blank')
+        toast.success('Opened in new tab — right-click to save')
+        return
       } else {
+        // For other URLs (e.g. DALL-E cdn.openai.com), use proxy
         const controller = new AbortController()
         const timer = setTimeout(() => controller.abort(), 20000)
         try {
@@ -481,7 +486,6 @@ export default function ImagesPage() {
           blob = await res.blob()
         } catch {
           clearTimeout(timer)
-          // Fallback: open image in new tab so user can save it manually
           window.open(img.url, '_blank')
           toast.success('Opened in new tab — right-click to save')
           return
