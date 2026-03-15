@@ -213,6 +213,9 @@ function ImageCard({ img, onExpand, onDownload, onRemix, onResolved, onLoadState
 
   const handleRetry = (e: React.MouseEvent) => {
     e.stopPropagation()
+    retryCountRef.current = 0
+    startTimeRef.current = Date.now()
+    setElapsed(0)
     setErrored(false)
     setLoaded(false)
     onLoadStateChange?.(img.id, true)
